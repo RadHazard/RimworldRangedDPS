@@ -23,12 +23,13 @@ namespace RangedDPS.GUI
             new Color(1f, 0f, 1f)
         };
 
+        private const int DATAPOINTS = 50; // The resolution of the graph
+
         private readonly List<GraphFunction> functions = new List<GraphFunction>();
         private readonly SimpleCurveDrawerStyle curveDrawerStyle;
 
         private FloatRange graphDomain = new FloatRange(0f, 40f);
         private Vector2 graphRange = new Vector2(0f, 20f);
-        private float step;
 
         private readonly List<SimpleCurveDrawInfo> curves = new List<SimpleCurveDrawInfo>();
 
@@ -37,7 +38,6 @@ namespace RangedDPS.GUI
         /// </summary>
         public GUIGraph()
         {
-
             curveDrawerStyle = new SimpleCurveDrawerStyle
             {
                 DrawMeasures = true,
@@ -121,42 +121,45 @@ namespace RangedDPS.GUI
         {
             curves.Clear();
 
-            // Calculate the domain first
-            float maxDomain = functions.Select(f => f.DomainMax).Max();
-            if (Mathf.Approximately(0f, maxDomain))
-                maxDomain += 1f;
-
-            step = maxDomain / 100f;
-            graphDomain.max = maxDomain;
-
-            int colorIndex = 0;
-            float maxRange = float.NegativeInfinity;
-            foreach (GraphFunction func in functions)
+            if (functions.Count > 0)
             {
-                SimpleCurveDrawInfo curveDrawInfo = new SimpleCurveDrawInfo
-                {
-                    color = colors[colorIndex++ % colors.Count],
-                    label = func.Label,
-                    valueFormat = func.ValueFormat,
-                    curve = new SimpleCurve()
-                };
+                // Calculate the domain first
+                float maxDomain = functions.Select(f => f.DomainMax).Max();
+                if (Mathf.Approximately(0f, maxDomain))
+                    maxDomain += 1f;
 
-                for (float x = func.DomainMin; x < func.DomainMax; x += step)
-                {
-                    float value = func.GetValueFor(x);
-                    curveDrawInfo.curve.Add(new CurvePoint(x, value), false);
+                float step = maxDomain / DATAPOINTS;
+                graphDomain.max = maxDomain;
 
-                    maxRange = Mathf.Max(maxRange, value);
+                int colorIndex = 0;
+                float maxRange = float.NegativeInfinity;
+                foreach (GraphFunction func in functions)
+                {
+                    SimpleCurveDrawInfo curveDrawInfo = new SimpleCurveDrawInfo
+                    {
+                        color = colors[colorIndex++ % colors.Count],
+                        label = func.Label,
+                        valueFormat = func.ValueFormat,
+                        curve = new SimpleCurve()
+                    };
+
+                    for (float x = func.DomainMin; x < func.DomainMax; x += step)
+                    {
+                        float value = func.GetValueFor(x);
+                        curveDrawInfo.curve.Add(new CurvePoint(x, value), false);
+
+                        maxRange = Mathf.Max(maxRange, value);
+                    }
+                    // Ensure the curves zero out outside of their domains
+                    curveDrawInfo.curve.Add(func.DomainMin - 1E-05f, 0);
+                    curveDrawInfo.curve.Add(func.DomainMax + 1E-05f, 0);
+
+                    curveDrawInfo.curve.SortPoints();
+                    curves.Add(curveDrawInfo);
                 }
-                // Ensure the curves zero out outside of their domains
-                curveDrawInfo.curve.Add(func.DomainMin - 1E-05f, 0);
-                curveDrawInfo.curve.Add(func.DomainMax + 1E-05f, 0);
 
-                curveDrawInfo.curve.SortPoints();
-                curves.Add(curveDrawInfo);
+                graphRange.y = maxRange * 1.05f; // Add a little extra space at the top of the graph
             }
-
-            graphRange.y = maxRange;
         }
     }
 
