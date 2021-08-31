@@ -35,8 +35,39 @@ namespace RangedDPS.StatUtilities
             }
         }
 
-        public override float AimSpeed => throw new NotImplementedException();//TODO
-        public override float ShootingAccuracy => throw new NotImplementedException();//TODO
+        protected float EffectiveShootingSkill
+        {
+            get
+            {
+                switch (aimLevel)
+                {
+                    case SimulatedShooterAim.CarefulShooter:
+                        return shootingSkill + 5f;
+                    case SimulatedShooterAim.TriggerHappy:
+                        return shootingSkill - 5f;
+                    default:
+                        return shootingSkill;
+                }
+            }
+        }
+
+        public override float AimSpeed
+        {
+            get
+            {
+                switch (aimLevel)
+                {
+                    case SimulatedShooterAim.CarefulShooter:
+                        return 1.25f;
+                    case SimulatedShooterAim.TriggerHappy:
+                        return 0.5f;
+                    default:
+                        return 1f;
+                }
+            }
+        }
+
+        public override float ShootingAccuracy => StatDefOf.ShootingAccuracyPawn.postProcessCurve.Evaluate(EffectiveShootingSkill);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:RangedDPS.StatUtilities.FakeShooterStats"/> class.

@@ -132,7 +132,7 @@ namespace RangedDPS.GUI
                 graphDomain.max = maxDomain;
 
                 int colorIndex = 0;
-                float maxRange = float.NegativeInfinity;
+                float maxRange = 0f;
                 foreach (GraphFunction func in functions)
                 {
                     SimpleCurveDrawInfo curveDrawInfo = new SimpleCurveDrawInfo

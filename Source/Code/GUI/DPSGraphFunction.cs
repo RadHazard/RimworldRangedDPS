@@ -1,4 +1,5 @@
 ﻿using RangedDPS.StatUtilities;
+using RimWorld;
 using Verse;
 
 namespace RangedDPS.GUI
@@ -8,15 +9,18 @@ namespace RangedDPS.GUI
     /// </summary>
     internal class GraphFunction_DPS : GraphFunction
     {
-        private readonly RangedWeaponStats weaponStats;
+        private readonly RangedWeaponStats weapon;
         private readonly ShooterStats shooter;
+        private readonly TargetStats target;
 
-        public GraphFunction_DPS(RangedWeaponStats weaponStats, ShooterStats shooter = null)
+        public GraphFunction_DPS(RangedWeaponStats weapon, ShooterStats shooter = null, TargetStats target = null)
         {
-            this.weaponStats = weaponStats;
+            this.weapon = weapon;
             this.shooter = shooter;
+            this.target = target;
         }
 
+        //TODO keep this?
         /// <summary>
         /// Creates a GraphFunction_DPS for the given gun Thing
         /// </summary>
@@ -46,18 +50,60 @@ namespace RangedDPS.GUI
             get
             {
                 if (shooter != null)
-                    return $"{shooter.Label} with {weaponStats.Label}";//TODO translate
+                    return $"{shooter.Label} with {weapon.Label}";//TODO translate
                 else
-                    return $"{weaponStats.Label}";
+                    return weapon.Label;
             }
         }
 
-        public override float DomainMin => weaponStats.MinRange;
-        public override float DomainMax => weaponStats.MaxRange;
+        public override float DomainMin => weapon.MinRange;
+        public override float DomainMax => weapon.MaxRange;
 
         public override float GetValueFor(float x)
         {
-            return weaponStats.GetAdjustedDPS(x, shooter);
+            return weapon.GetAdjustedDPS(x, shooter, target);
+        }
+    }
+
+    /// <summary>
+    /// A graph function for graphing the DPS of a turret
+    /// </summary>
+    internal class GraphFunction_TurretDPS : GraphFunction
+    {
+        private readonly TurretGunStats turret;
+        private readonly TargetStats target;
+
+        public GraphFunction_TurretDPS(TurretGunStats turret, TargetStats target = null)
+        {
+            this.turret = turret;
+            this.target = target;
+        }
+
+        /// <summary>
+        /// Creates a GraphFunction_DPS for the given gun Thing
+        /// </summary>
+        /// <returns>The thing.</returns>
+        /// <param name="turret">Turret building.</param>
+        public static GraphFunction_TurretDPS FromTurret(Building_TurretGun turret)
+        {
+            if (turret == null)
+            {
+                Log.Error($"[RangedDPS] Tried to get the ranged weapon stats of a null turret");
+                return null;
+            }
+
+            return new GraphFunction_TurretDPS(new TurretGunStats(turret));
+        }
+
+
+        public override string Label => turret.Label;
+
+        public override float DomainMin => turret.MinRange;
+        public override float DomainMax => turret.MaxRange;
+
+        public override float GetValueFor(float x)
+        {
+            return turret.GetTurretAdjustedDPS(x, target);
         }
     }
 }
