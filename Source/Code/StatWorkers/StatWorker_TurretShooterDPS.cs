@@ -1,6 +1,7 @@
 ﻿using System;
 using RangedDPS.StatUtilities;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RangedDPS
@@ -26,18 +27,18 @@ namespace RangedDPS
             }
 
             Building_TurretGun turret = GetTurret(req);
-            RangedWeaponStats weaponStats = GetTurretStats(req);
+            TurretGunStats turretStats = GetTurretStats(req);
 
-            float optimalRange = weaponStats.FindOptimalRange(turret);
-            return weaponStats.GetAdjustedDPS(optimalRange, turret);
+            float optimalRange = turretStats.FindTurretOptimalRange();
+            return turretStats.GetTurretAdjustedDPS(optimalRange);
         }
 
         public override string GetStatDrawEntryLabel(StatDef stat, float value, ToStringNumberSense numberSense, StatRequest optionalReq, bool finalized = true)
         {
             Building_TurretGun turret = GetTurret(optionalReq);
-            RangedWeaponStats weaponStats = GetTurretStats(optionalReq);
+            TurretGunStats turretStats = GetTurretStats(optionalReq);
 
-            int optimalRange = (int)weaponStats.FindOptimalRange(turret);
+            int optimalRange = Mathf.RoundToInt(turretStats.FindTurretOptimalRange());
 
             return string.Format("{0} ({1})",
                 value.ToStringByStyle(stat.toStringStyle, numberSense),
@@ -52,9 +53,9 @@ namespace RangedDPS
             }
 
             Building_TurretGun turret = GetTurret(req);
-            RangedWeaponStats weaponStats = GetTurretStats(req);
+            TurretGunStats turretStats = GetTurretStats(req);
 
-            return DPSRangeBreakdown(weaponStats, turret);
+            return DPSRangeBreakdown(turretStats, turretStats.Shooter);
         }
 
     }

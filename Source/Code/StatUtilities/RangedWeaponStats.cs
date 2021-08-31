@@ -41,16 +41,15 @@ namespace RangedDPS.StatUtilities
             return verb;
         }
 
-
         /// <summary>
         /// Gets the full cycle time of this weapon (The time from beginning to aim a shot to the end of the cooldown).
         /// If shooter is provided, the shooter's aim speed will be factored into the cycle time
         /// </summary>
         /// <returns>The raw ranged DPS of the weapon.</returns>
         /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
-        public float GetFullCycleTime(Pawn shooter = null)
+        public float GetFullCycleTime(ShooterStats shooter = null)
         {
-            float aimFactor = shooter?.GetStatValue(StatDefOf.AimingDelayFactor, true) ?? 1f;
+            float aimFactor = shooter?.AimSpeed ?? 1f;
             return (Warmup * aimFactor) + Cooldown + ((BurstShotCount - 1) * BurstDelayTicks).TicksToSeconds();
         }
 
@@ -59,22 +58,27 @@ namespace RangedDPS.StatUtilities
         /// If shooter is provided, the shooter's aim speed will be factored into the DPS
         /// </summary>
         /// <returns>The raw ranged DPS of the weapon.</returns>
-        /// <param name="shooter">(Optional) The Pawn wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
-        public float GetRawDPS(Pawn shooter = null)
+        /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float GetRawDPS(ShooterStats shooter = null, TargetStats target = null)
         {
-            return ShotDamage * BurstShotCount / GetFullCycleTime(shooter);
+            if (target == null)
+                target = TargetStats.StandardTarget;
+
+            return ShotDamage * target.GetSharpDamageReduction(ArmorPenetration) * BurstShotCount / GetFullCycleTime(shooter);
         }
 
         /// <summary>
-        /// Gets the adjusted hit chance factor of a shot.  This is equivalent to shootVerb.GetHitChanceFactor() unless
-        /// a shooter is provided, in which case it will also be adjusted based on the shooter's hit chance.
+        /// Gets the adjusted hit chance of a shot.  This is the total chance a shot from this weapon will hit, taking
+        /// into account the shooter's and target's stats, if provided.
         /// 
         /// This value can be greater than 1.0 in the case of weapons with overcapped accuracy.
         /// </summary>
         /// <returns>The adjusted hit chance factor.</returns>
         /// <param name="range">The range of the shot.</param>
-        /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
-        public float GetAdjustedHitChanceFactor(float range, Thing shooter = null)
+        /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float GetAdjustedHitChance(float range, ShooterStats shooter = null, TargetStats target = null)
         {
             // replicated from ShootVerb.GetHitChanceFactor()
             float hitChance;
@@ -92,9 +96,10 @@ namespace RangedDPS.StatUtilities
             // In vanilla, weapons can't have >100% accuracy anyway so not capping it won't hurt things
 
             if (shooter != null)
-            {
-                hitChance *= ShotReport.HitFactorFromShooter(shooter, range);
-            }
+                hitChance *= ShotReport.HitFactorFromShooter(shooter.ShootingAccuracy, range);
+
+            if (target != null)
+                hitChance *= target.TotalHitFactor;
 
             return hitChance;
         }
@@ -105,10 +110,11 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The accuracy-adjusted ranged DPS of the weapon.</returns>
         /// <param name="range">The range of the shot.</param>
-        /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
-        public float GetAdjustedDPS(float range, Thing shooter = null)
+        /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float GetAdjustedDPS(float range, ShooterStats shooter = null, TargetStats target = null)
         {
-            return GetRawDPS(shooter as Pawn) * Math.Min(GetAdjustedHitChanceFactor(range, shooter), 1f);
+            return GetRawDPS(shooter, target) * Math.Min(GetAdjustedHitChance(range, shooter, target), 1f);
         }
 
         /// <summary>
@@ -120,12 +126,13 @@ namespace RangedDPS.StatUtilities
         /// The range, in cells, at which this weapon performs best (for the <paramref name="shooter"/> if provided, or
         /// in general if not).
         /// </returns>
-        /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
-        public float FindOptimalRange(Thing shooter = null)
+        /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float FindOptimalRange(ShooterStats shooter = null, TargetStats target = null)
         {
-            int minRangeInt = (int)Math.Max(1.0, Math.Ceiling(MinRange));
-            int maxRangeInt = (int)Math.Floor(MaxRange);
-            return Enumerable.Range(minRangeInt, maxRangeInt).MaxBy(range => GetAdjustedHitChanceFactor(range, shooter));
+            int minRangeInt = Math.Max(1, Mathf.CeilToInt(MinRange));
+            int maxRangeInt = Mathf.FloorToInt(MaxRange);
+            return Enumerable.Range(minRangeInt, maxRangeInt).MaxBy(range => GetAdjustedHitChance(range, shooter, target));
         }
     }
 
@@ -171,6 +178,7 @@ namespace RangedDPS.StatUtilities
     public class TurretGunStats : RangedWeaponStats
     {
         private readonly Building_TurretGun turret;
+        private readonly CompRefuelable compRefuelable;
         private readonly VerbProperties shootVerb;
         private readonly ProjectileProperties projectile;
         private readonly float cooldown;
@@ -195,9 +203,60 @@ namespace RangedDPS.StatUtilities
         public override float AccuracyMedium => turret.gun.GetStatValue(StatDefOf.AccuracyMedium);
         public override float AccuracyLong => turret.gun.GetStatValue(StatDefOf.AccuracyLong);
 
+        /// <summary>
+        /// The shooter stats of this turret
+        /// </summary>
+        /// <value>The shooter.</value>
+        public ShooterStats Shooter { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this turret uses fuel (barrel refurbishing, ammo, etc.).
+        /// </summary>
+        /// <value><c>true</c> if needs fuel; otherwise, <c>false</c>.</value>
+        public bool NeedsFuel => compRefuelable != null;
+
+        /// <summary>
+        /// Gets the amount of shots this turret can shoot per unit of fuel
+        /// </summary>
+        /// <value>The fuel per shot, or float.MaxValue if the turret does not use fuel.</value>
+        public float ShotsPerFuel
+        {
+            get
+            {
+                if (!NeedsFuel) return float.MaxValue;
+                return compRefuelable.Props.FuelMultiplierCurrentDifficulty;
+            }
+        }
+
+        /// <summary>
+        /// Gets the amount of fuel used per point of damage dealt by the turret (assuming the shot hits).
+        /// Returns 0 if the turret does not use fuel.
+        /// </summary>
+        /// <value>The fuel per damage, or float.MaxValue if the turret does not use fuel.</value>
+        public float DamagePerFuel
+        {
+            get
+            {
+                if (!NeedsFuel) return float.MaxValue;
+                return ShotsPerFuel * ShotDamage;
+            }
+        }
+
+        /// <summary>
+        /// Gets the accuracy-adjusted damage this turret can do per unit of fuel at a particular range.
+        /// </summary>
+        /// <returns>The accuracy-adjusted ranged damage per fuel of the turret.</returns>
+        /// <param name="range">The range of the shot.</param>
+        public float GetAdjustedDamagePerFuel(float range)
+        {
+            return DamagePerFuel * Math.Min(GetTurretAdjustedHitChance(range), 1f);
+        }
+
         public TurretGunStats(Building_TurretGun turret)
         {
             this.turret = turret;
+            Shooter = new TurretShooterStats(turret);
+            compRefuelable = turret.TryGetComp<CompRefuelable>();
             shootVerb = GetShootVerb(turret.gun.def);
 
             // Note that the projectile can potentially be null if the weapon is loadable, like a morter
@@ -210,5 +269,39 @@ namespace RangedDPS.StatUtilities
             else
                 cooldown = turret.AttackVerb.verbProps.defaultCooldownTime;
         }
+
+        /// <summary>
+        /// Gets the raw DPS of this turret (The DPS assuming all shots hit their target).
+        /// </summary>
+        /// <returns>The raw ranged DPS of the turret.</returns>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float GetTurretRawDPS(TargetStats target = null) => GetRawDPS(Shooter, target);
+
+        /// <summary>
+        /// Gets the adjusted hit chance of a shot.  This is the chance a shot from this turret will hit, taking into
+        /// account the target's stats, if provided.
+        /// 
+        /// This value can be greater than 1.0 in the case of weapons with overcapped accuracy.
+        /// </summary>
+        /// <returns>The adjusted hit chance factor.</returns>
+        /// <param name="range">The range of the shot.</param>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float GetTurretAdjustedHitChance(float range, TargetStats target = null) => GetAdjustedHitChance(range, Shooter, target);
+
+        /// <summary>
+        /// Gets the accuracy-adjusted DPS of this turret at a particular range.
+        /// </summary>
+        /// <returns>The accuracy-adjusted ranged DPS of the weapon.</returns>
+        /// <param name="range">The range of the shot.</param>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float GetTurretAdjustedDPS(float range, TargetStats target = null) => GetAdjustedDPS(range, Shooter, target);
+
+        /// <summary>
+        /// Calculates and returns the optimal range of the turret + gun (the range at which accuracy is highest).
+        /// weapon.
+        /// </summary>
+        /// <returns>The range, in cells, at which this turret performs best</returns>
+        /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
+        public float FindTurretOptimalRange(TargetStats target = null) => FindOptimalRange(Shooter, target);
     }
 }

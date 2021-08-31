@@ -30,9 +30,9 @@ namespace RangedDPS.GUI
             var testGun2 = ThingUtils.MakeThingByName("Gun_LMG", quality: QualityCategory.Excellent);
             var testGun3 = ThingUtils.MakeThingByName("Gun_AssaultRifle", quality: QualityCategory.Normal);
 
-            graph.AddFunctions(GraphFunction_DPS.FromThing(testGun1),
-                GraphFunction_DPS.FromThing(testGun2),
-                GraphFunction_DPS.FromThing(testGun3));
+            graph.AddFunctions(GraphFunction_DPS.FromGun(testGun1),
+                GraphFunction_DPS.FromGun(testGun2),
+                GraphFunction_DPS.FromGun(testGun3));
             // == debug stuff ==
         }
 

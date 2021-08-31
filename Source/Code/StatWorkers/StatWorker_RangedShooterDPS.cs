@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using RangedDPS.StatUtilities;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RangedDPS
@@ -35,18 +36,20 @@ namespace RangedDPS
             }
 
             Pawn pawn = req.Thing as Pawn;
-            RangedWeaponStats weaponStats = GetWeaponStats(GetPawnWeapon(pawn));
+            PawnShooterStats pawnStats = new PawnShooterStats(pawn);
+            GunStats weaponStats = GetWeaponStats(GetPawnWeapon(pawn));
 
-            float optimalRange = weaponStats.FindOptimalRange(pawn);
-            return weaponStats.GetAdjustedDPS(optimalRange, pawn);
+            float optimalRange = weaponStats.FindOptimalRange(pawnStats);
+            return weaponStats.GetAdjustedDPS(optimalRange, pawnStats);
         }
 
         public override string GetStatDrawEntryLabel(StatDef stat, float value, ToStringNumberSense numberSense, StatRequest optionalReq, bool finalized = true)
         {
             Pawn pawn = optionalReq.Thing as Pawn;
+            PawnShooterStats pawnStats = new PawnShooterStats(pawn);
             RangedWeaponStats weaponStats = GetWeaponStats(GetPawnWeapon(pawn));
 
-            int optimalRange = (int)weaponStats.FindOptimalRange(pawn);
+            int optimalRange = Mathf.RoundToInt(weaponStats.FindOptimalRange(pawnStats));
 
             return string.Format("{0} ({1})",
                 value.ToStringByStyle(stat.toStringStyle, numberSense),
@@ -61,15 +64,16 @@ namespace RangedDPS
             }
 
             Pawn pawn = req.Thing as Pawn;
-            RangedWeaponStats weaponStats = GetWeaponStats(GetPawnWeapon(pawn));
-            return DPSRangeBreakdown(weaponStats, pawn);
+            PawnShooterStats pawnStats = new PawnShooterStats(pawn);
+            GunStats weaponStats = GetWeaponStats(GetPawnWeapon(pawn));
+            return DPSRangeBreakdown(weaponStats, pawnStats);
         }
 
         public override IEnumerable<Dialog_InfoCard.Hyperlink> GetInfoCardHyperlinks(StatRequest statRequest)
         {
             if (statRequest.Thing is Pawn pawn && pawn?.equipment?.Primary != null)
             {
-                yield return new Dialog_InfoCard.Hyperlink(pawn.equipment.Primary, -1);
+                yield return new Dialog_InfoCard.Hyperlink(pawn.equipment.Primary);
             }
         }
 

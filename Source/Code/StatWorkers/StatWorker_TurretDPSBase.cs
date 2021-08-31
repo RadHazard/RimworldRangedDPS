@@ -37,7 +37,7 @@ namespace RangedDPS
             return GetTurret(req).gun;
         }
 
-        protected static TurretStats GetTurretStats(StatRequest req)
+        protected static TurretGunStats GetTurretStats(StatRequest req)
         {
             return GetTurretStats(GetTurret(req));
         }
@@ -48,7 +48,7 @@ namespace RangedDPS
         /// </summary>
         /// <returns>The stats of the passed-in turret.</returns>
         /// <param name="turret">The turret to get stats for.</param>
-        protected static TurretStats GetTurretStats(Building_TurretGun turret)
+        protected static TurretGunStats GetTurretStats(Building_TurretGun turret)
         {
             if (turret == null)
             {
@@ -56,7 +56,7 @@ namespace RangedDPS
                 return null;
             }
 
-            return new TurretStats(turret);
+            return new TurretGunStats(turret);
         }
     }
 }

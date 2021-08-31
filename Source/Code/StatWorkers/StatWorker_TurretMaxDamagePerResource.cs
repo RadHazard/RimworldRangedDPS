@@ -1,5 +1,4 @@
-﻿using System;
-using RangedDPS.StatUtilities;
+﻿using RangedDPS.StatUtilities;
 using RimWorld;
 
 namespace RangedDPS
@@ -22,7 +21,7 @@ namespace RangedDPS
                 return 0f;
             }
 
-            TurretStats turretStats = GetTurretStats(req);
+            TurretGunStats turretStats = GetTurretStats(req);
             return turretStats.DamagePerFuel;
         }
     }

@@ -9,21 +9,21 @@ namespace RangedDPS.GUI
     internal class GraphFunction_DPS : GraphFunction
     {
         private readonly RangedWeaponStats weaponStats;
-        private readonly Thing shooter;
+        private readonly ShooterStats shooter;
 
-        public GraphFunction_DPS(RangedWeaponStats weaponStats, Thing shooter = null)
+        public GraphFunction_DPS(RangedWeaponStats weaponStats, ShooterStats shooter = null)
         {
             this.weaponStats = weaponStats;
             this.shooter = shooter;
         }
 
         /// <summary>
-        /// Creates a GraphFunction_DPS for the given thing
+        /// Creates a GraphFunction_DPS for the given gun Thing
         /// </summary>
         /// <returns>The thing.</returns>
         /// <param name="weapon">Weapon thing.</param>
         /// <param name="shooter">Shooter.</param>
-        public static GraphFunction_DPS FromThing(Thing weapon, Thing shooter = null)
+        public static GraphFunction_DPS FromGun(Thing weapon, Pawn shooter = null)
         {
             if (weapon == null)
             {
@@ -37,7 +37,7 @@ namespace RangedDPS.GUI
                 return null;
             }
 
-            return new GraphFunction_DPS(new RangedWeaponStats(weapon), shooter);
+            return new GraphFunction_DPS(new GunStats(weapon), new PawnShooterStats(shooter));
         }
 
 
@@ -46,9 +46,9 @@ namespace RangedDPS.GUI
             get
             {
                 if (shooter != null)
-                    return $"{shooter.LabelShortCap} with {weaponStats.Weapon.LabelCap}";
+                    return $"{shooter.Label} with {weaponStats.Label}";//TODO translate
                 else
-                    return $"{weaponStats.Weapon.LabelCap}";
+                    return $"{weaponStats.Label}";
             }
         }
 
