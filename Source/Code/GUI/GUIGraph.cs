@@ -23,7 +23,7 @@ namespace RangedDPS.GUI
             new Color(1f, 0f, 1f)
         };
 
-        private const int DATAPOINTS = 50; // The resolution of the graph
+        private const int DATAPOINTS = 500; // The resolution of the graph
 
         private readonly List<GraphFunction> functions = new List<GraphFunction>();
         private readonly SimpleCurveDrawerStyle curveDrawerStyle;

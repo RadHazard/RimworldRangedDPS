@@ -1,8 +1,6 @@
-﻿using Verse;
-using RimWorld;
+﻿using RimWorld;
 using UnityEngine;
 using RangedDPS.Utilities;
-using RangedDPS.StatUtilities;
 
 namespace RangedDPS.GUI
 {

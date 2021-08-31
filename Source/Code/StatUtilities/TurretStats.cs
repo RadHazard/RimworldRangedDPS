@@ -4,10 +4,9 @@ using Verse;
 
 namespace RangedDPS.StatUtilities
 {
-    public class TurretStats : RangedWeaponStats
+    public class TurretStats : TurretGunStats
     {
-        public readonly Building_TurretGun turret;
-        public readonly CompRefuelable compRefuelable;
+        protected readonly CompRefuelable compRefuelable;
 
         /// <summary>
         /// Gets a value indicating whether this turret uses fuel (barrel refurbishing, ammo, etc.).
@@ -36,13 +35,12 @@ namespace RangedDPS.StatUtilities
         public float DamagePerFuel {
             get {
                 if (!NeedsFuel) return float.MaxValue;
-                return ShotsPerFuel * shotDamage;
+                return ShotsPerFuel * ShotDamage;
             }
         }
 
         public TurretStats(Building_TurretGun turret) : base(turret)
         {
-            this.turret = turret;
             compRefuelable = turret.TryGetComp<CompRefuelable>();
         }
 

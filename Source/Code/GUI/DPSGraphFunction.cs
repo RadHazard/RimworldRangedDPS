@@ -46,9 +46,9 @@ namespace RangedDPS.GUI
             get
             {
                 if (shooter != null)
-                    return $"{shooter.LabelShortCap} with {weaponStats.weapon.LabelCap}";
+                    return $"{shooter.LabelShortCap} with {weaponStats.Weapon.LabelCap}";
                 else
-                    return $"{weaponStats.weapon.LabelCap}";
+                    return $"{weaponStats.Weapon.LabelCap}";
             }
         }
 

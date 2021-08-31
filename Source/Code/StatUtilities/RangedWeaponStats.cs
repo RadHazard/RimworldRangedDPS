@@ -1,73 +1,35 @@
 ﻿using System;
 using System.Linq;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RangedDPS.StatUtilities
 {
-    public class RangedWeaponStats
+    /// <summary>
+    /// Wrapper class to unify the stats of a ranged weapon (without a shooter),
+    /// regardless of whether it's a turret or a handheld gun
+    /// </summary>
+    public abstract class RangedWeaponStats
     {
-        public readonly Thing weapon;
-        public readonly VerbProperties shootVerb;
+        public abstract string Label { get; }
 
-        public readonly int shotDamage;
-        public readonly float warmup;
-        public readonly float cooldown;
+        public abstract float Warmup { get; }
+        public abstract float Cooldown { get; }
 
-        public int BurstShotCount { get { return shootVerb.burstShotCount; } }
-        public int BurstDelayTicks { get { return shootVerb.ticksBetweenBurstShots; } }
+        public abstract int ShotDamage { get; }
+        public abstract float ArmorPenetration { get; }
 
-        public float MinRange { get { return shootVerb.minRange; } }
-        public float MaxRange { get { return shootVerb.range; } }
+        public abstract int BurstShotCount { get; }
+        public abstract int BurstDelayTicks { get; }
 
-        public float AccuracyTouch { get { return weapon.GetStatValue(StatDefOf.AccuracyTouch); } }
-        public float AccuracyShort { get { return weapon.GetStatValue(StatDefOf.AccuracyShort); } }
-        public float AccuracyMedium { get { return weapon.GetStatValue(StatDefOf.AccuracyMedium); } }
-        public float AccuracyLong { get { return weapon.GetStatValue(StatDefOf.AccuracyLong); } }
+        public abstract float MinRange { get; }
+        public abstract float MaxRange { get; }
 
-        public RangedWeaponStats(Thing weapon)
-        {
-            this.weapon = weapon;
-            shootVerb = GetShootVerb(weapon.def);
-
-            // Get the damage from the loaded projectile if the weapon is loadable or the default projectile otherwise
-            // TODO - check if it's even possible for regular weapons to have this comp
-            var projectile = weapon.TryGetComp<CompChangeableProjectile>()?.Projectile?.projectile
-                    ?? shootVerb.defaultProjectile?.projectile;
-
-            // Default to zero damage if we can't find a projectile.
-            // Not an error as unloaded mortars don't have projectiles
-            shotDamage = projectile?.GetDamageAmount(weapon) ?? 0;
-            warmup = shootVerb.warmupTime;
-            cooldown = weapon.GetStatValue(StatDefOf.RangedWeapon_Cooldown, true);
-        }
-
-        public RangedWeaponStats(Building_TurretGun turret)
-        {
-            weapon = turret.gun;
-            shootVerb = GetShootVerb(weapon.def);
-
-            // Get the damage from the loaded projectile if the weapon is loadable or the default projectile otherwise
-            var projectile = weapon.TryGetComp<CompChangeableProjectile>()?.Projectile?.projectile
-                    ?? shootVerb?.defaultProjectile?.projectile;
-
-            // Default to zero damage if we can't find a projectile.
-            // Not an error as unloaded mortars don't have projectiles
-            shotDamage = projectile?.GetDamageAmount(weapon) ?? 0;
-
-            // Note that turrets completely ignore the warmup and cooldown stat of the weapon
-            warmup = turret.def.building.turretBurstWarmupTime;
-
-            // Logic duplicated from Building_TurretGun.BurstCooldownTime()
-            if (turret.def.building.turretBurstCooldownTime >= 0f)
-            {
-                cooldown = turret.def.building.turretBurstCooldownTime;
-            }
-            else
-            {
-                cooldown = turret.AttackVerb.verbProps.defaultCooldownTime;
-            }
-        }
+        public abstract float AccuracyTouch { get; }
+        public abstract float AccuracyShort { get; }
+        public abstract float AccuracyMedium { get; }
+        public abstract float AccuracyLong { get; }
 
         protected VerbProperties GetShootVerb(ThingDef thingDef)
         {
@@ -85,11 +47,11 @@ namespace RangedDPS.StatUtilities
         /// If shooter is provided, the shooter's aim speed will be factored into the cycle time
         /// </summary>
         /// <returns>The raw ranged DPS of the weapon.</returns>
-        /// <param name="shooter">(Optional) The Pawn wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
+        /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
         public float GetFullCycleTime(Pawn shooter = null)
         {
             float aimFactor = shooter?.GetStatValue(StatDefOf.AimingDelayFactor, true) ?? 1f;
-            return (warmup * aimFactor) + cooldown + ((BurstShotCount - 1) * BurstDelayTicks).TicksToSeconds();
+            return (Warmup * aimFactor) + Cooldown + ((BurstShotCount - 1) * BurstDelayTicks).TicksToSeconds();
         }
 
         /// <summary>
@@ -100,7 +62,7 @@ namespace RangedDPS.StatUtilities
         /// <param name="shooter">(Optional) The Pawn wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
         public float GetRawDPS(Pawn shooter = null)
         {
-            return shotDamage * BurstShotCount / GetFullCycleTime(shooter);
+            return ShotDamage * BurstShotCount / GetFullCycleTime(shooter);
         }
 
         /// <summary>
@@ -114,7 +76,21 @@ namespace RangedDPS.StatUtilities
         /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
         public float GetAdjustedHitChanceFactor(float range, Thing shooter = null)
         {
-            float hitChance = shootVerb.GetHitChanceFactor(weapon, range);
+            // replicated from ShootVerb.GetHitChanceFactor()
+            float hitChance;
+            if (range <= 3f)
+                hitChance = AccuracyTouch;
+            else if (range <= 12f)
+                hitChance = Mathf.Lerp(AccuracyTouch, AccuracyShort, Mathf.InverseLerp(3f, 12f, range));
+            else if (range <= 25f)
+                hitChance = Mathf.Lerp(AccuracyShort, AccuracyMedium, Mathf.InverseLerp(12f, 25f, range));
+            else if (range <= 40f)
+                hitChance = Mathf.Lerp(AccuracyMedium, AccuracyLong, Mathf.InverseLerp(25f, 40f, range));
+            else
+                hitChance = AccuracyLong;
+            // Note - vanilla clamps this value between 0.01 and 1, but there are several mods that allow overcapped accuracy
+            // In vanilla, weapons can't have >100% accuracy anyway so not capping it won't hurt things
+
             if (shooter != null)
             {
                 hitChance *= ShotReport.HitFactorFromShooter(shooter, range);
@@ -150,6 +126,89 @@ namespace RangedDPS.StatUtilities
             int minRangeInt = (int)Math.Max(1.0, Math.Ceiling(MinRange));
             int maxRangeInt = (int)Math.Floor(MaxRange);
             return Enumerable.Range(minRangeInt, maxRangeInt).MaxBy(range => GetAdjustedHitChanceFactor(range, shooter));
+        }
+    }
+
+    /// <summary>
+    /// RangedWeaponStats for a handheld gun
+    /// </summary>
+    public class GunStats : RangedWeaponStats
+    {
+        private readonly Thing weapon;
+        private readonly VerbProperties shootVerb;
+        private readonly ProjectileProperties projectile;
+
+        public override string Label => weapon.LabelCap;
+
+        public override float Warmup => shootVerb.warmupTime;
+        public override float Cooldown => weapon.GetStatValue(StatDefOf.RangedWeapon_Cooldown, true);
+
+        public override int ShotDamage => projectile?.GetDamageAmount(weapon) ?? 0;
+        public override float ArmorPenetration => projectile?.GetArmorPenetration(weapon) ?? 0;
+
+        public override int BurstShotCount => shootVerb.burstShotCount;
+        public override int BurstDelayTicks => shootVerb.ticksBetweenBurstShots;
+
+        public override float MinRange => shootVerb.minRange;
+        public override float MaxRange => shootVerb.range;
+
+        public override float AccuracyTouch => weapon.GetStatValue(StatDefOf.AccuracyTouch);
+        public override float AccuracyShort => weapon.GetStatValue(StatDefOf.AccuracyShort);
+        public override float AccuracyMedium => weapon.GetStatValue(StatDefOf.AccuracyMedium);
+        public override float AccuracyLong => weapon.GetStatValue(StatDefOf.AccuracyLong);
+
+        public GunStats(Thing weapon)
+        {
+            this.weapon = weapon;
+            shootVerb = GetShootVerb(weapon.def);
+            projectile = shootVerb.defaultProjectile?.projectile;
+        }
+    }
+
+    /// <summary>
+    /// RangedWeaponStats for a turret's gun
+    /// </summary>
+    public class TurretGunStats : RangedWeaponStats
+    {
+        private readonly Building_TurretGun turret;
+        private readonly VerbProperties shootVerb;
+        private readonly ProjectileProperties projectile;
+        private readonly float cooldown;
+
+        public override string Label => turret.gun.LabelCap;
+
+        // Note that turrets completely ignore the warmup and cooldown stat of the weapon
+        public override float Warmup => turret.def.building.turretBurstWarmupTime;
+        public override float Cooldown => cooldown;
+
+        public override int ShotDamage => projectile?.GetDamageAmount(turret.gun) ?? 0;
+        public override float ArmorPenetration => projectile?.GetArmorPenetration(turret.gun) ?? 0;
+
+        public override int BurstShotCount => shootVerb.burstShotCount;
+        public override int BurstDelayTicks => shootVerb.ticksBetweenBurstShots;
+
+        public override float MinRange => shootVerb.minRange;
+        public override float MaxRange => shootVerb.range;
+
+        public override float AccuracyTouch => turret.gun.GetStatValue(StatDefOf.AccuracyTouch);
+        public override float AccuracyShort => turret.gun.GetStatValue(StatDefOf.AccuracyShort);
+        public override float AccuracyMedium => turret.gun.GetStatValue(StatDefOf.AccuracyMedium);
+        public override float AccuracyLong => turret.gun.GetStatValue(StatDefOf.AccuracyLong);
+
+        public TurretGunStats(Building_TurretGun turret)
+        {
+            this.turret = turret;
+            shootVerb = GetShootVerb(turret.gun.def);
+
+            // Note that the projectile can potentially be null if the weapon is loadable, like a morter
+            projectile = turret.gun.TryGetComp<CompChangeableProjectile>()?.Projectile?.projectile
+                    ?? shootVerb.defaultProjectile?.projectile;
+
+            // Logic duplicated from Building_TurretGun.BurstCooldownTime()
+            if (turret.def.building.turretBurstCooldownTime >= 0f)
+                cooldown = turret.def.building.turretBurstCooldownTime;
+            else
+                cooldown = turret.AttackVerb.verbProps.defaultCooldownTime;
         }
     }
 }
