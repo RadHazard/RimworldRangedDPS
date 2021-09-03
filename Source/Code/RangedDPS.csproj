@@ -81,6 +81,7 @@
     <Compile Include="StatUtilities\TargetStats.cs" />
     <Compile Include="CompareTool\MainTabWindow_Compare.cs" />
     <Compile Include="CompareTool\DPSGraphFunction.cs" />
+    <Compile Include="CompareTool\CompareStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />

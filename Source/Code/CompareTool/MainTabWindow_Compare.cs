@@ -3,12 +3,12 @@ using UnityEngine;
 using RangedDPS.Utilities;
 using RangedDPS.StatUtilities;
 using RangedDPS.GUIUtils;
+using Verse;
 
 namespace RangedDPS.CompareTool
 {
     public class MainTabWindow_Compare : MainTabWindow
     {
-
         protected virtual float ExtraBottomSpace => 53f;
         protected virtual float ExtraTopSpace => 0f;
         //protected override float Margin => 6f;
@@ -17,6 +17,8 @@ namespace RangedDPS.CompareTool
         private readonly LineGraph graph = new LineGraph();
 
         public override Vector2 RequestedTabSize => new Vector2(size.x + Margin * 2f, size.y + ExtraBottomSpace + ExtraTopSpace + Margin * 2f);
+
+        public CompareStorage Storage => Find.World.GetComponent<CompareStorage>();
 
         /// <summary>
         /// Runs before the window opens
