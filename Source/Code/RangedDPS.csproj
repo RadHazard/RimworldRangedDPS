@@ -76,11 +76,11 @@
     <Compile Include="StatWorkers\StatWorker_TurretShooterDPS.cs" />
     <Compile Include="StatWorkers\StatWorker_TurretWeaponDPS.cs" />
     <Compile Include="GUI\GUIGraph.cs" />
-    <Compile Include="GUI\MainTabWindow_Compare.cs" />
-    <Compile Include="GUI\DPSGraphFunction.cs" />
     <Compile Include="Utilities\ThingUtils.cs" />
     <Compile Include="StatUtilities\ShooterStats.cs" />
     <Compile Include="StatUtilities\TargetStats.cs" />
+    <Compile Include="CompareTool\MainTabWindow_Compare.cs" />
+    <Compile Include="CompareTool\DPSGraphFunction.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />
@@ -88,6 +88,7 @@
     <Folder Include="StatWorkers\" />
     <Folder Include="GUI\" />
     <Folder Include="Utilities\" />
+    <Folder Include="CompareTool\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

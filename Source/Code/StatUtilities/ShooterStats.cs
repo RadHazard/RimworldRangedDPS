@@ -28,10 +28,10 @@ namespace RangedDPS.StatUtilities
             get
             {
                 if (aimLevel == SimulatedShooterAim.TriggerHappy)
-                    return $"Shooting {shootingSkill} (Trigger Happy)"; // TODO translate
+                    return $"Lvl {shootingSkill} (TH)"; // TODO translate
                 if (aimLevel == SimulatedShooterAim.CarefulShooter)
-                    return $"Shooting {shootingSkill} (Careful Shooter)"; // TODO translate
-                return $"Shooting {shootingSkill}";//TODO translate
+                    return $"Lvl {shootingSkill} (CS)"; // TODO translate
+                return $"Lvl {shootingSkill}";//TODO translate
             }
         }
 
@@ -74,7 +74,7 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <param name="shootingSkill">The shooting skill of the pawn to simulate.</param>
         /// <param name="aimLevel">The aim quality trait of the pawn.</param>
-        protected SimulatedShooterStats(float shootingSkill = 8f, SimulatedShooterAim aimLevel = SimulatedShooterAim.Normal)
+        public SimulatedShooterStats(float shootingSkill = 8f, SimulatedShooterAim aimLevel = SimulatedShooterAim.Normal)
         {
             this.shootingSkill = shootingSkill;
             this.aimLevel = aimLevel;

@@ -1,8 +1,9 @@
-﻿using RangedDPS.StatUtilities;
+﻿using RangedDPS.GUI;
+using RangedDPS.StatUtilities;
 using RimWorld;
 using Verse;
 
-namespace RangedDPS.GUI
+namespace RangedDPS.CompareTool
 {
     /// <summary>
     /// A graph function for graphing the DPS of a weapon with or without an associated pawn
@@ -50,7 +51,7 @@ namespace RangedDPS.GUI
             get
             {
                 if (shooter != null)
-                    return $"{shooter.Label} with {weapon.Label}";//TODO translate
+                    return $"{shooter.Label}, {weapon.Label}";//TODO translate
                 else
                     return weapon.Label;
             }
@@ -96,7 +97,7 @@ namespace RangedDPS.GUI
         }
 
 
-        public override string Label => turret.Label;
+        public override string Label => turret.Shooter.Label;
 
         public override float DomainMin => turret.MinRange;
         public override float DomainMax => turret.MaxRange;
