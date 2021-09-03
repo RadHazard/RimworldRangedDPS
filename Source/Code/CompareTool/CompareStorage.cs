@@ -10,6 +10,8 @@ namespace RangedDPS.CompareTool
     /// </summary>
     public class CompareStorage : WorldComponent
     {
+        public static CompareStorage Component => Find.World.GetComponent<CompareStorage>();
+
         public CompareStorage(World world) : base(world) { }
 
         private List<Pawn> favoritedPawns = new List<Pawn>();

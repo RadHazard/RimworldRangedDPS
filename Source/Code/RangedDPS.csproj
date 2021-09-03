@@ -82,6 +82,10 @@
     <Compile Include="CompareTool\MainTabWindow_Compare.cs" />
     <Compile Include="CompareTool\DPSGraphFunction.cs" />
     <Compile Include="CompareTool\CompareStorage.cs" />
+    <Compile Include="CompareTool\Dialog_PickGun.cs" />
+    <Compile Include="CompareTool\Dialog_PickTurret.cs" />
+    <Compile Include="CompareTool\Dialog_PickTarget.cs" />
+    <Compile Include="CompareTool\Dialog_PickShooter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />

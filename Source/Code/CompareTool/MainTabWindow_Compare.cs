@@ -7,6 +7,38 @@ using Verse;
 
 namespace RangedDPS.CompareTool
 {
+    /// <summary>
+    /// The main tab window for the comparison tool.  The compare tool lets you compare multiple weapon/pawn/turret
+    /// combinations to see how they fare
+    /// 
+    /// TODO
+    /// Tab ideas
+    ///- Compare weapons
+    ///  - Select one or more weapons to compare(allow turret guns to be used here-)
+    ///  - Optionally, include a shooter who will hold the guns
+    ///  - Optionally, include a target(presets for common enemy types, as well as custom settings)
+    ///
+    ///- Compare pawns
+    ///  - Select one or more pawns to compare
+    ///  - Allow turrets to be selected as well
+    ///  - Optionally, include a gun that all pawns will use.  Otherwise, they'll use their current weapon (turrets will be unaffected).
+    ///  - Optionally, include a target
+    ///
+    ///- Compare targets
+    ///  - Select one or more targets to compare
+    ///  - Have a single weapon to compare
+    ///  - Optionally, include a shooter
+    ///  - Allow turrets to be selected instead of shooter/gun
+    /// 
+    /// - Compare turret resources
+    ///  - Select one or more turrets
+    ///  - Have a single weapon to compare
+    ///  - Optionally allow a turret
+    ///
+    ///- Freeform
+    ///  - Select any combination of Pawn + weapon + target for each entry
+    ///  - More customaizable but not as easy to use
+    /// </summary>
     public class MainTabWindow_Compare : MainTabWindow
     {
         protected virtual float ExtraBottomSpace => 53f;
@@ -17,8 +49,6 @@ namespace RangedDPS.CompareTool
         private readonly LineGraph graph = new LineGraph();
 
         public override Vector2 RequestedTabSize => new Vector2(size.x + Margin * 2f, size.y + ExtraBottomSpace + ExtraTopSpace + Margin * 2f);
-
-        public CompareStorage Storage => Find.World.GetComponent<CompareStorage>();
 
         /// <summary>
         /// Runs before the window opens
