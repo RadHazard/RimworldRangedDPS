@@ -4,7 +4,7 @@
         <defName>RangedDPS_Compare</defName>
         <label>RangedDPS</label>
         <description>Compare different weapons and pawns!</description>
-        <tabWindowClass>RangedDPS.GUI.MainTabWindow_Compare</tabWindowClass>
+        <tabWindowClass>RangedDPS.CompareTool.MainTabWindow_Compare</tabWindowClass>
         <order>499</order>
         <validWithoutMap>true</validWithoutMap>
     </MainButtonDef>

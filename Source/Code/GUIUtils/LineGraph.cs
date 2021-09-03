@@ -10,7 +10,7 @@ namespace RangedDPS.GUIUtils
     /// 
     /// The graph auto-resizes based on the domain and range of the functions
     /// </summary>
-    internal class LineGraph
+    public class LineGraph
     {
         // TODO better colors
         private static readonly List<Color> colors = new List<Color>
@@ -166,7 +166,7 @@ namespace RangedDPS.GUIUtils
     /// <summary>
     /// A single graphable function to be rendered on a graph
     /// </summary>
-    internal abstract class GraphFunction
+    public abstract class GraphFunction
     {
         /// <summary>
         /// Gets the name of this function.

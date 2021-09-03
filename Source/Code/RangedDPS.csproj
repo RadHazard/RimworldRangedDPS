@@ -86,6 +86,8 @@
     <Compile Include="CompareTool\Dialog_PickTurret.cs" />
     <Compile Include="CompareTool\Dialog_PickTarget.cs" />
     <Compile Include="CompareTool\Dialog_PickShooter.cs" />
+    <Compile Include="CompareTool\Tab_Freeform.cs" />
+    <Compile Include="CompareTool\Tab.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />

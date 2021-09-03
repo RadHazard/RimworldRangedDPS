@@ -24,6 +24,7 @@ namespace RangedDPS.CompareTool
         {
             throw new NotImplementedException();
         }
+
         //private Pawn pawn;
 
         //private string curName;
