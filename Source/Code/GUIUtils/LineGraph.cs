@@ -3,14 +3,14 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 
-namespace RangedDPS.GUI
+namespace RangedDPS.GUIUtils
 {
     /// <summary>
     /// A GUI class that renders a line graph of one or more float functions
     /// 
     /// The graph auto-resizes based on the domain and range of the functions
     /// </summary>
-    internal class GUIGraph
+    internal class LineGraph
     {
         // TODO better colors
         private static readonly List<Color> colors = new List<Color>
@@ -36,7 +36,7 @@ namespace RangedDPS.GUI
         /// <summary>
         /// Initializes a new instance of the <see cref="T:RimProfiler.GUIGraph`1"/> class.
         /// </summary>
-        public GUIGraph()
+        public LineGraph()
         {
             curveDrawerStyle = new SimpleCurveDrawerStyle
             {

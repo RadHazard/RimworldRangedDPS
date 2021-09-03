@@ -75,7 +75,7 @@
     <Compile Include="StatWorkers\StatWorker_TurretMaxDPS.cs" />
     <Compile Include="StatWorkers\StatWorker_TurretShooterDPS.cs" />
     <Compile Include="StatWorkers\StatWorker_TurretWeaponDPS.cs" />
-    <Compile Include="GUI\GUIGraph.cs" />
+    <Compile Include="GUIUtils\LineGraph.cs" />
     <Compile Include="Utilities\ThingUtils.cs" />
     <Compile Include="StatUtilities\ShooterStats.cs" />
     <Compile Include="StatUtilities\TargetStats.cs" />
@@ -86,7 +86,7 @@
     <Folder Include="Tests\" />
     <Folder Include="StatUtilities\" />
     <Folder Include="StatWorkers\" />
-    <Folder Include="GUI\" />
+    <Folder Include="GUIUtils\" />
     <Folder Include="Utilities\" />
     <Folder Include="CompareTool\" />
   </ItemGroup>

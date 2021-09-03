@@ -1,4 +1,4 @@
-﻿using RangedDPS.GUI;
+﻿using RangedDPS.GUIUtils;
 using RangedDPS.StatUtilities;
 using RimWorld;
 using Verse;

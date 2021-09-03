@@ -2,7 +2,7 @@
 using UnityEngine;
 using RangedDPS.Utilities;
 using RangedDPS.StatUtilities;
-using RangedDPS.GUI;
+using RangedDPS.GUIUtils;
 
 namespace RangedDPS.CompareTool
 {
@@ -14,7 +14,7 @@ namespace RangedDPS.CompareTool
         //protected override float Margin => 6f;
 
         private readonly Vector2 size = new Vector2(1000f, 500f); // TODO - calculate this
-        private readonly GUIGraph graph = new GUIGraph();
+        private readonly LineGraph graph = new LineGraph();
 
         public override Vector2 RequestedTabSize => new Vector2(size.x + Margin * 2f, size.y + ExtraBottomSpace + ExtraTopSpace + Margin * 2f);
 
