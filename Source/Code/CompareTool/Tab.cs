@@ -1,4 +1,5 @@
-﻿using RangedDPS.GUIUtils;
+﻿using System;
+using RangedDPS.GUIUtils;
 using UnityEngine;
 using Verse;
 
@@ -15,6 +16,11 @@ namespace RangedDPS.CompareTool
         [TweakValue("___RangedDPS", 0, 1)]
         private static float GraphHeightPercent = 0.7f;
 
+        [TweakValue("___RangedDPS", 0, 20)]
+        private static float Margin = 6f;
+
+        public abstract string Label { get; }
+
         protected readonly LineGraph graph = new LineGraph();
 
         /// <summary>
@@ -23,26 +29,28 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">The rectangle to draw within.</param>
         public void DoTabContents(Rect inRect)
         {
-            GUI.BeginGroup(inRect);
+            inRect.SplitVertically(GraphWidthPercent * inRect.width, out Rect graphRect, out Rect menuRect);
 
-            float graphWidth = inRect.width * GraphWidthPercent;
-            float graphHeight = inRect.height * GraphHeightPercent;
+            DoGraphContents(graphRect);
+            DoMenuContents(menuRect);
+        }
 
-            float menuWidth = inRect.width - graphWidth;
-            float legendHeight = inRect.height - graphHeight;
-
-            Rect graphRect = new Rect(0f, 0f, graphWidth, graphHeight);
-            Rect legendRect = new Rect(0f, graphHeight, inRect.width, legendHeight);
+        /// <summary>
+        /// Draws the graph area
+        /// </summary>
+        /// <param name="inRect">The rectangle to draw within.</param>
+        protected void DoGraphContents(Rect inRect)
+        {
+            Rect content = inRect.ContractedBy(Margin);
+            content.SplitHorizontally(GraphHeightPercent * content.height, out Rect graphRect, out Rect legendRect);
 
             graph.Draw(graphRect, legendRect);
-
-            GUI.EndGroup();
         }
 
         /// <summary>
         /// Draws the selection menu
         /// </summary>
         /// <param name="inRect">The rectangle to draw within.</param>
-        public abstract void DoMenuContents(Rect inRect);
+        protected abstract void DoMenuContents(Rect inRect);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using RangedDPS.GUIUtils;
 using RangedDPS.StatUtilities;
 using RangedDPS.Utilities;
 using RimWorld;
@@ -8,19 +9,30 @@ using Verse;
 namespace RangedDPS.CompareTool
 {
     /// <summary>
-    /// Comparison tab for the freeform graph
+    /// Comparison tab for guns
     /// </summary>
-    public class Tab_Freeform : Tab
+    public class Tab_Guns : Tab
     {
-        // TODO translation
-        private Lazy<string> cachedLabelTranslation = new Lazy<string>(() => "Graph".Translate());
+        [TweakValue("___RangedDPS", 0f, 100f)]
+        private static float GunsMenuTopSection = 100f;
 
-        public override string Label => "Freeform";//cachedLabelTranslation.Value;
+        [TweakValue("___RangedDPS", 0f, 10f)]
+        private static float GunsMenuShooterTargetMargin = 2f;
+
+        // TODO translation
+        private Lazy<string> label = new Lazy<string>(() => "Graph".Translate());
+
+        public override string Label => "Guns";//label.Value;
+
+        private ShooterStats shooter;
+
+        private TargetStats target = TargetStats.StandardTarget;
+
 
         /// <summary>
         /// Runs before the window opens
         /// </summary>
-        public Tab_Freeform()
+        public Tab_Guns()
         {
             // == TODO debug stuff ==
             graph.ClearFunctions();
@@ -65,9 +77,39 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">The rectangle to draw within.</param>
         protected override void DoMenuContents(Rect inRect)
         {
-            GUI.BeginGroup(inRect);
-            //TODO
-            GUI.EndGroup();
+            inRect.SplitHorizontally(GunsMenuTopSection, out Rect shooterTargetRect, out Rect gunsRect);
+
+            Rect shooterRect = shooterTargetRect.LeftHalf().Margin(GunsMenuShooterTargetMargin);
+            Rect targetRect = shooterTargetRect.RightHalf().Margin(GunsMenuShooterTargetMargin);
+
+            DoShooterWidget(shooterRect);
+            DoTargetWidget(targetRect);
+        }
+
+        /// <summary>
+        /// Draws the shooter selection widget
+        /// </summary>
+        /// <param name="inRect">In rect.</param>
+        private void DoShooterWidget(Rect inRect)
+        {
+            string shooterLabel = shooter?.Label ?? "(none)"; // TODO translate
+            if (Widgets.ButtonText(inRect, shooterLabel))
+            {
+                //TODO
+            }
+        }
+
+        /// <summary>
+        /// Draws the target selection widget
+        /// </summary>
+        /// <param name="inRect">In rect.</param>
+        private void DoTargetWidget(Rect inRect)
+        {
+            string targetLabel = target?.Label ?? "(none)"; // TODO translate
+            if (Widgets.ButtonText(inRect, targetLabel))
+            {
+                //TODO
+            }
         }
     }
 }

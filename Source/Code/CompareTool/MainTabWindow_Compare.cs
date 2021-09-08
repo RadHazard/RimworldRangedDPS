@@ -2,6 +2,7 @@
 using UnityEngine;
 using Verse;
 using System.Collections.Generic;
+using RangedDPS.GUIUtils;
 
 namespace RangedDPS.CompareTool
 {
@@ -39,32 +40,24 @@ namespace RangedDPS.CompareTool
     /// </summary>
     public class MainTabWindow_Compare : MainTabWindow
     {
-        private enum CompareTab : byte
-        {
-            Freeform
-        }
-
-        protected virtual float ExtraBottomSpace => 53f;
-        protected virtual float ExtraTopSpace => 0f;
-
-        private readonly Vector2 size = new Vector2(1500f, 500f); // TODO - calculate this
+        private readonly Vector2 size = new Vector2(1500f, 500f);
 
         private readonly List<TabRecord> tabs;
 
-        private readonly Tab_Freeform freeformTab;
+        private readonly Tab_Freeform freeformTab = new Tab_Freeform();
+        private readonly Tab_Guns gunsTab = new Tab_Guns();
 
         private Tab currentTab;
 
-        public override Vector2 RequestedTabSize => new Vector2(size.x + Margin * 2f, size.y + ExtraBottomSpace + ExtraTopSpace + Margin * 2f);
+        public override Vector2 RequestedTabSize => new Vector2(size.x + Margin * 2f, size.y + Margin * 2f);
 
         public MainTabWindow_Compare()
         {
             tabs = new List<TabRecord>
             {
-                new TabRecord("Graph".Translate(), () => currentTab = freeformTab, () => currentTab == freeformTab)
+                new TabRecord(freeformTab.Label, () => currentTab = freeformTab, () => currentTab == freeformTab),
+                new TabRecord(gunsTab.Label, () => currentTab = gunsTab, () => currentTab == gunsTab)
             };
-
-            freeformTab = new Tab_Freeform();
 
             currentTab = freeformTab;
         }
@@ -75,11 +68,12 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">The rectangle to draw within.</param>
         public override void DoWindowContents(Rect inRect)
         {
-            inRect.yMin += ExtraTopSpace;
-            inRect.yMax += ExtraBottomSpace;
+            // Tabs take up an extra 32 pixels
+            Rect content = inRect.Margins(32f);
 
-            TabDrawer.DrawTabs(inRect, tabs);
-            currentTab.DoTabContents(inRect);
+            Widgets.DrawMenuSection(content);
+            TabDrawer.DrawTabs(content, tabs);
+            currentTab.DoTabContents(content);
         }
     }
 }

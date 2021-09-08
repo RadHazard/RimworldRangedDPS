@@ -16,6 +16,8 @@ namespace RangedDPS.StatUtilities
         /// <value>The standard target.</value>
         public static TargetStats StandardTarget { get; } = new SimulatedTargetStats();
 
+        public abstract string Label { get; }
+
         public abstract float Size { get; }
         public abstract float Cover { get; }
 
@@ -74,6 +76,7 @@ namespace RangedDPS.StatUtilities
 
         private readonly ArmorStats armor;
 
+        public override string Label => $"Size {size.ToString("0.0")} target";
         public override float Size => size;
         public override float Cover => cover;
 
@@ -98,6 +101,7 @@ namespace RangedDPS.StatUtilities
         private readonly float cover;
         private readonly ArmorStats additionalArmor;
 
+        public override string Label => pawn.LabelCap;
         public override float Size => pawn.BodySize;
         public override float Cover => cover;
 

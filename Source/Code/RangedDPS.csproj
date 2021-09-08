@@ -88,6 +88,9 @@
     <Compile Include="CompareTool\Dialog_PickShooter.cs" />
     <Compile Include="CompareTool\Tab_Freeform.cs" />
     <Compile Include="CompareTool\Tab.cs" />
+    <Compile Include="CompareTool\Tab_Guns.cs" />
+    <Compile Include="GUIUtils\RectExtensions.cs" />
+    <Compile Include="GUIUtils\ScrollableList.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />
