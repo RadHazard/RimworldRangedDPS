@@ -37,5 +37,35 @@ namespace RangedDPS.GUIUtils
                 xMax = rect.xMax - rightMargin,
             };
         }
+
+        /// <summary>
+        /// Splits a rectangle into three parts with a fixed left and right width.
+        /// </summary>
+        /// <returns>The three sub-rects.</returns>
+        /// <param name="rect">Rect.</param>
+        /// <param name="leftWidth">Width of the left rect, in pixels.</param>
+        /// <param name="rightWidth">Width of the right rect, in pixels.</param>
+        /// <param name="margin">(Optional) margin between the subrects</param>
+        public static (Rect left, Rect center, Rect right) SplitVerticallyThreeWay(this Rect rect, float leftWidth, float rightWidth, float margin = 0f)
+        {
+            rect.SplitVertically(leftWidth, out Rect left, out Rect remainder, margin);
+            remainder.SplitVertically(remainder.width - rightWidth, out Rect center, out Rect right, margin);
+            return (left, center, right);
+        }
+
+        /// <summary>
+        /// Splits a rectangle into three parts with a fixed top and bottom width.
+        /// </summary>
+        /// <returns>The three sub-rects.</returns>
+        /// <param name="rect">Rect.</param>
+        /// <param name="topHeight">Width of the top rect, in pixels.</param>
+        /// <param name="bottomHeight">Width of the bottom rect, in pixels.</param>
+        /// <param name="margin">(Optional) margin between the subrects</param>
+        public static (Rect top, Rect center, Rect bottom) SplitHorizontallyThreeWay(this Rect rect, float topHeight, float bottomHeight, float margin = 0f)
+        {
+            rect.SplitHorizontally(topHeight, out Rect top, out Rect remainder, margin);
+            remainder.SplitHorizontally(remainder.height - bottomHeight, out Rect center, out Rect bottom, margin);
+            return (top, center, bottom);
+        }
     }
 }

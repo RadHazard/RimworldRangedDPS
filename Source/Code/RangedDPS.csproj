@@ -91,6 +91,8 @@
     <Compile Include="CompareTool\Tab_Guns.cs" />
     <Compile Include="GUIUtils\RectExtensions.cs" />
     <Compile Include="GUIUtils\ScrollableList.cs" />
+    <Compile Include="GUIUtils\ScrollableList_PawnSelect.cs" />
+    <Compile Include="Utilities\EnumerableUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />

@@ -95,7 +95,7 @@ namespace RangedDPS.CompareTool
             string shooterLabel = shooter?.Label ?? "(none)"; // TODO translate
             if (Widgets.ButtonText(inRect, shooterLabel))
             {
-                //TODO
+                Find.WindowStack.Add(new Dialog_PickShooter(s => shooter = s, shooter));
             }
         }
 
@@ -110,6 +110,5 @@ namespace RangedDPS.CompareTool
             {
                 //TODO
             }
-        }
-    }
+        }}
 }

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RangedDPS.GUIUtils;
 using RangedDPS.StatUtilities;
+using RangedDPS.Utilities;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -30,10 +33,18 @@ namespace RangedDPS.CompareTool
             //TODO - pick-a-pawn tool?
         }
 
+        [TweakValue("___RangedDPS", 0f, 20f)]
+        private static float PickShooterMargin = 6f;
+
+        [TweakValue("___RangedDPS", 0f, 200f)]
+        private static float PickShooterTabWidth = 100f;
+
         private readonly Action<ShooterStats> callback;
 
         private readonly List<TabRecord> tabs;
+        private readonly ScrollableList_PawnSelect colonistList;
 
+        private Pawn selectedPawn;
         private ShooterStats shooterStats;
 
         private ShooterTab currentTab;
@@ -54,15 +65,24 @@ namespace RangedDPS.CompareTool
             tabs = new List<TabRecord>
             {
                 //TODO translate
-                new TabRecord("Real Pawn", () => currentTab = ShooterTab.Colonist, () => currentTab == ShooterTab.Colonist),
+                new TabRecord("Colonist", () => currentTab = ShooterTab.Colonist, () => currentTab == ShooterTab.Colonist),
                 new TabRecord("Simulated", () => currentTab = ShooterTab.Simulated, () => currentTab == ShooterTab.Simulated)
             };
 
+            // TODO is this the right list?
+            colonistList = new ScrollableList_PawnSelect(SelectPawn, PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists);
+
             // Default to the colonist tab if the current shooter is either a colonist or null
             if (currentStats is SimulatedShooterStats)
+            {
                 currentTab = ShooterTab.Simulated;
+            }
             else
+            {
+                if (currentStats is PawnShooterStats pawnStats)
+                    selectedPawn = pawnStats.Pawn;
                 currentTab = ShooterTab.Colonist;
+            }
         }
 
         /// <summary>
@@ -73,43 +93,52 @@ namespace RangedDPS.CompareTool
         {
             Rect content = inRect.Margins(bottomMargin: 40f); // the accept button is 35 pixes + some extra
 
-            content.SplitHorizontally(50f, out Rect shooterDisplay, out Rect shooterSelector, 6f);
+            (Rect shooterDisplay, Rect shooterSelect, Rect buttons) = inRect.SplitHorizontallyThreeWay(200f, 35f, 6f);
 
             Widgets.DrawMenuSection(shooterDisplay);
-            Widgets.DrawMenuSection(shooterSelector);
+            DoShooterDisplay(shooterDisplay);
 
-            TabDrawer.DrawTabs(content, tabs);
+            shooterSelect.y += 32f; // Add space for tabs
+            Widgets.DrawMenuSection(shooterSelect);
+            TabDrawer.DrawTabs(shooterSelect, tabs, PickShooterTabWidth);
 
             switch (currentTab)
             {
                 case ShooterTab.Colonist:
-                    DoColonistTab(content);
+                    DoColonistTab(shooterSelect);
                     break;
                 case ShooterTab.Simulated:
-                    DoSimulatedTab(content);
+                    DoSimulatedTab(shooterSelect);
                     break;
             }
 
             // Accept button
-            if (Widgets.ButtonText(new Rect(15f, inRect.height - 35f - 15f, inRect.width - 15f - 15f, 35f), "OK"))
+            if (Widgets.ButtonText(buttons, "OK")) //TODO translate
             {
-                //AcceptanceReport acceptanceReport = NameIsValid(curName);
-                //if (!acceptanceReport.Accepted)
-                //{
-                //    if (acceptanceReport.Reason.NullOrEmpty())
-                //    {
-                //        Messages.Message("NameIsInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
-                //    }
-                //    else
-                //    {
-                //        Messages.Message(acceptanceReport.Reason, MessageTypeDefOf.RejectInput, false);
-                //    }
-                //}
-                //else
-                //{
-                    callback(shooterStats);
-                    Find.WindowStack.TryRemove(this);
-                //}
+                callback(shooterStats);
+                Find.WindowStack.TryRemove(this);
+            }
+        }
+
+        /// <summary>
+        /// Draws the currently selected shooter.
+        /// </summary>
+        /// <param name="inRect">In rect.</param>
+        private void DoShooterDisplay(Rect inRect)
+        {
+            Rect content = inRect.Margin(PickShooterMargin);
+
+            if (shooterStats is PawnShooterStats pawnStats)
+            {
+
+            }
+            else if (shooterStats is SimulatedShooterStats simStats)
+            {
+
+            }
+            else
+            {
+                Widgets.Label(content, "(None)"); // TODO 
             }
         }
 
@@ -119,7 +148,8 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoColonistTab(Rect inRect)
         {
-            //TODO
+            Rect content = inRect.Margin(PickShooterMargin);
+            colonistList.Draw(content, selectedPawn.YieldIfNotNull());
         }
 
         /// <summary>
@@ -129,6 +159,16 @@ namespace RangedDPS.CompareTool
         private void DoSimulatedTab(Rect inRect)
         {
             //TODO
+        }
+
+        /// <summary>
+        /// Sets the pawn as the selected shooter
+        /// </summary>
+        /// <param name="pawn">Pawn.</param>
+        private void SelectPawn(Pawn pawn)
+        {
+            selectedPawn = pawn;
+            shooterStats = new PawnShooterStats(pawn);
         }
     }
 }

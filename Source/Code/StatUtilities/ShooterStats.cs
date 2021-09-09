@@ -96,16 +96,16 @@ namespace RangedDPS.StatUtilities
     /// </summary>
     public class PawnShooterStats : ShooterStats
     {
-        private readonly Pawn shooter;
+        public Pawn Pawn { get; }
 
-        public override string Label => shooter.LabelShortCap;
+        public override string Label => Pawn.LabelShortCap;
 
-        public override float AimSpeed => shooter.GetStatValue(StatDefOf.AimingDelayFactor, true);
-        public override float ShootingAccuracy => shooter.GetStatValue(StatDefOf.ShootingAccuracyPawn, true);
+        public override float AimSpeed => Pawn.GetStatValue(StatDefOf.AimingDelayFactor, true);
+        public override float ShootingAccuracy => Pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn, true);
 
         public PawnShooterStats(Pawn shooter)
         {
-            this.shooter = shooter;
+            Pawn = shooter;
         }
     }
 
