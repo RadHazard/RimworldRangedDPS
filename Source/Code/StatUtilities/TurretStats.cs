@@ -7,16 +7,17 @@ namespace RangedDPS.StatUtilities
     public class TurretStats : RangedWeaponStats
     {
         public readonly Building_TurretGun turret;
-        public readonly CompRefuelable compRefuelable;
+        public readonly CompRefuelable? compRefuelable;
 
         /// <summary>
         /// Gets a value indicating whether this turret uses fuel (barrel refurbishing, ammo, etc.).
         /// </summary>
         /// <value><c>true</c> if needs fuel; otherwise, <c>false</c>.</value>
-        public bool NeedsFuel { get { return compRefuelable != null; } }
+        public bool NeedsFuel => compRefuelable != null;
 
         /// <summary>
-        /// Gets the amount of shots this turret can shoot per unit of fuel
+        /// Gets the amount of shots this turret can shoot per unit of fuel.
+        /// Returns float.maxValue if the turret does not use fuel.
         /// </summary>
         /// <value>The fuel per shot, or float.MaxValue if the turret does not use fuel.</value>
         public float ShotsPerFuel
@@ -24,15 +25,15 @@ namespace RangedDPS.StatUtilities
             get
             {
                 if (!NeedsFuel) return float.MaxValue;
-                return compRefuelable.Props.FuelMultiplierCurrentDifficulty;
+                return compRefuelable!.Props.FuelMultiplierCurrentDifficulty;
             }
         }
 
         /// <summary>
-        /// Gets the amount of fuel used per point of damage dealt by the turret (assuming the shot hits).
-        /// Returns 0 if the turret does not use fuel.
+        /// Gets the amount of damage dealt by the turret per unit of fuel used (assuming all shots hit).
+        /// Returns float.maxValue if the turret does not use fuel.
         /// </summary>
-        /// <value>The fuel per damage, or float.MaxValue if the turret does not use fuel.</value>
+        /// <value>The damage per fuel, or float.MaxValue if the turret does not use fuel.</value>
         public float DamagePerFuel {
             get {
                 if (!NeedsFuel) return float.MaxValue;

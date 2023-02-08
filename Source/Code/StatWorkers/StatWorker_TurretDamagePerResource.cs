@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Text;
+using JetBrains.Annotations;
 using RangedDPS.StatUtilities;
 using RimWorld;
 using Verse;
 
-namespace RangedDPS
+namespace RangedDPS.StatWorkers
 {
-
+    [UsedImplicitly]
     public class StatWorker_TurretDamagePerResource : StatWorker_TurretDPSBase
     {
         public override bool ShouldShowFor(StatRequest req)
@@ -24,19 +25,20 @@ namespace RangedDPS
                 return 0f;
             }
 
-            TurretStats turretStats = GetTurretStats(req);
+            var turretStats = GetTurretStats(req);
 
-            float optimalRange = turretStats.FindOptimalRange(turretStats.turret);
+            var optimalRange = turretStats.FindOptimalRange(turretStats.turret);
             return turretStats.GetAdjustedDamagePerFuel(optimalRange);
         }
 
-        public override string GetStatDrawEntryLabel(StatDef stat, float value, ToStringNumberSense numberSense, StatRequest optionalReq, bool finalized = true)
+        public override string GetStatDrawEntryLabel(StatDef statDef, float value, ToStringNumberSense numberSense,
+            StatRequest optionalReq, bool finalized = true)
         {
-            TurretStats weaponStats = GetTurretStats(optionalReq);
-            int optimalRange = (int)weaponStats.FindOptimalRange(weaponStats.turret);
+            var weaponStats = GetTurretStats(optionalReq);
+            var optimalRange = (int)weaponStats.FindOptimalRange(weaponStats.turret);
 
             return string.Format("{0} ({1})",
-                value.ToStringByStyle(stat.toStringStyle, numberSense),
+                value.ToStringByStyle(statDef.toStringStyle, numberSense),
                 string.Format("StatsReport_RangedDPSOptimalRange".Translate(), optimalRange));
         }
 
@@ -56,30 +58,30 @@ namespace RangedDPS
         /// weapon.
         /// </summary>
         /// <returns>A string providing a breakdown of the fuel usage of the given turret at various ranges.</returns>
-        /// <param name="turretStats">The turret to caluclate a breakdown for.</param>
+        /// <param name="turretStats">The turret to calculate a breakdown for.</param>
         protected static string FuelRangeBreakdown(TurretStats turretStats)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("StatsReport_RangedDPSResourceAccuracy".Translate());
 
             // Min Range
-            float minRange = Math.Max(turretStats.MinRange, 1f);
-            float minRangeHitChance = turretStats.GetAdjustedHitChanceFactor(minRange, turretStats.turret);
-            float minRangeDPF = turretStats.GetAdjustedDamagePerFuel(minRange);
+            var minRange = Math.Max(turretStats.MinRange, 1f);
+            var minRangeHitChance = turretStats.GetAdjustedHitChanceFactor(minRange, turretStats.turret);
+            var minRangeDPF = turretStats.GetAdjustedDamagePerFuel(minRange);
             stringBuilder.AppendLine(FormatValueRangeString(minRange, minRangeDPF, minRangeHitChance));
 
             // Ranges between Min - Max, in steps of 5
-            float startRange = (float)Math.Ceiling(minRange / 5) * 5;
-            for (float range = startRange; range < turretStats.MaxRange; range += 5)
+            var startRange = (float)Math.Ceiling(minRange / 5) * 5;
+            for (var range = startRange; range < turretStats.MaxRange; range += 5)
             {
-                float hitChance = turretStats.GetAdjustedHitChanceFactor(range, turretStats.turret);
-                float dpf = turretStats.GetAdjustedDamagePerFuel(range);
+                var hitChance = turretStats.GetAdjustedHitChanceFactor(range, turretStats.turret);
+                var dpf = turretStats.GetAdjustedDamagePerFuel(range);
                 stringBuilder.AppendLine(FormatValueRangeString(range, dpf, hitChance));
             }
 
             // Max Range
-            float maxRangeHitChance = turretStats.GetAdjustedHitChanceFactor(turretStats.MaxRange, turretStats.turret);
-            float maxRangeDPF = turretStats.GetAdjustedDamagePerFuel(turretStats.MaxRange);
+            var maxRangeHitChance = turretStats.GetAdjustedHitChanceFactor(turretStats.MaxRange, turretStats.turret);
+            var maxRangeDPF = turretStats.GetAdjustedDamagePerFuel(turretStats.MaxRange);
             stringBuilder.AppendLine(FormatValueRangeString(turretStats.MaxRange, maxRangeDPF, maxRangeHitChance));
 
             return stringBuilder.ToString();

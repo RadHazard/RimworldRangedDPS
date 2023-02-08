@@ -14,16 +14,16 @@ namespace RangedDPS.StatUtilities
         public readonly float warmup;
         public readonly float cooldown;
 
-        public int BurstShotCount { get { return shootVerb.burstShotCount; } }
-        public int BurstDelayTicks { get { return shootVerb.ticksBetweenBurstShots; } }
+        public int BurstShotCount => shootVerb.burstShotCount;
+        public int BurstDelayTicks => shootVerb.ticksBetweenBurstShots;
 
-        public float MinRange { get { return shootVerb.minRange; } }
-        public float MaxRange { get { return shootVerb.range; } }
+        public float MinRange => shootVerb.minRange;
+        public float MaxRange => shootVerb.range;
 
-        public float AccuracyTouch { get { return weapon.GetStatValue(StatDefOf.AccuracyTouch); } }
-        public float AccuracyShort { get { return weapon.GetStatValue(StatDefOf.AccuracyShort); } }
-        public float AccuracyMedium { get { return weapon.GetStatValue(StatDefOf.AccuracyMedium); } }
-        public float AccuracyLong { get { return weapon.GetStatValue(StatDefOf.AccuracyLong); } }
+        public float AccuracyTouch => weapon.GetStatValue(StatDefOf.AccuracyTouch);
+        public float AccuracyShort => weapon.GetStatValue(StatDefOf.AccuracyShort);
+        public float AccuracyMedium => weapon.GetStatValue(StatDefOf.AccuracyMedium);
+        public float AccuracyLong => weapon.GetStatValue(StatDefOf.AccuracyLong);
 
         public RangedWeaponStats(Thing weapon)
         {
@@ -39,7 +39,7 @@ namespace RangedDPS.StatUtilities
             // Not an error as unloaded mortars don't have projectiles
             shotDamage = projectile?.GetDamageAmount(weapon) ?? 0;
             warmup = shootVerb.warmupTime;
-            cooldown = weapon.GetStatValue(StatDefOf.RangedWeapon_Cooldown, true);
+            cooldown = weapon.GetStatValue(StatDefOf.RangedWeapon_Cooldown);
         }
 
         public RangedWeaponStats(Building_TurretGun turret)
@@ -49,33 +49,40 @@ namespace RangedDPS.StatUtilities
 
             // Get the damage from the loaded projectile if the weapon is loadable or the default projectile otherwise
             var projectile = weapon.TryGetComp<CompChangeableProjectile>()?.Projectile?.projectile
-                    ?? shootVerb?.defaultProjectile?.projectile;
+                    ?? shootVerb.defaultProjectile?.projectile;
 
             // Default to zero damage if we can't find a projectile.
             // Not an error as unloaded mortars don't have projectiles
             shotDamage = projectile?.GetDamageAmount(weapon) ?? 0;
 
             // Note that turrets completely ignore the warmup and cooldown stat of the weapon
-            warmup = turret.def.building.turretBurstWarmupTime;
+            // 1.4 changed this to a range, but we can just average the range to get the same effect
+            warmup = turret.def.building.turretBurstWarmupTime.Average;
 
             // Logic duplicated from Building_TurretGun.BurstCooldownTime()
             if (turret.def.building.turretBurstCooldownTime >= 0f)
-            {
                 cooldown = turret.def.building.turretBurstCooldownTime;
-            }
             else
-            {
                 cooldown = turret.AttackVerb.verbProps.defaultCooldownTime;
-            }
         }
 
-        protected VerbProperties GetShootVerb(ThingDef thingDef)
+        /// <summary>
+        /// Gets the shoot verb of the given ThingDef
+        /// </summary>
+        /// <param name="thingDef">The ThingDef to get the verb from</param>
+        /// <returns>The shoot verb</returns>
+        protected static VerbProperties GetShootVerb(ThingDef thingDef)
         {
-            // Note - the game uses the first shoot verb and ignores the rest for whatever reason.  Do the same here
+            // Note - the game uses the first shoot verb and ignores the rest for whatever reason.  Do the same here.
+            // TODO - check if this is still true in 1.4
             var verb = (from v in thingDef.Verbs
                         where !v.IsMeleeAttack
                         select v).FirstOrDefault();
-            if (verb == null) Log.Error($"[RangedDPS] Could not find a valid shoot verb for ThingDef {thingDef.defName}");
+            if (verb == null)
+            {
+                Log.Error($"[RangedDPS] Could not find a valid shoot verb for ThingDef {thingDef.defName}!");
+                verb = new VerbProperties(); // Make a null object to avoid cascading NPEs
+            }
             return verb;
         }
 
@@ -86,9 +93,9 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The raw ranged DPS of the weapon.</returns>
         /// <param name="shooter">(Optional) The Pawn wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
-        public float GetFullCycleTime(Pawn shooter = null)
+        public float GetFullCycleTime(Pawn? shooter = null)
         {
-            float aimFactor = shooter?.GetStatValue(StatDefOf.AimingDelayFactor, true) ?? 1f;
+            var aimFactor = shooter?.GetStatValue(StatDefOf.AimingDelayFactor) ?? 1f;
             return (warmup * aimFactor) + cooldown + ((BurstShotCount - 1) * BurstDelayTicks).TicksToSeconds();
         }
 
@@ -98,7 +105,7 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The raw ranged DPS of the weapon.</returns>
         /// <param name="shooter">(Optional) The Pawn wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
-        public float GetRawDPS(Pawn shooter = null)
+        public float GetRawDPS(Pawn? shooter = null)
         {
             return shotDamage * BurstShotCount / GetFullCycleTime(shooter);
         }
@@ -112,9 +119,9 @@ namespace RangedDPS.StatUtilities
         /// <returns>The adjusted hit chance factor.</returns>
         /// <param name="range">The range of the shot.</param>
         /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
-        public float GetAdjustedHitChanceFactor(float range, Thing shooter = null)
+        public float GetAdjustedHitChanceFactor(float range, Thing? shooter = null)
         {
-            float hitChance = shootVerb.GetHitChanceFactor(weapon, range);
+            var hitChance = shootVerb.GetHitChanceFactor(weapon, range);
             if (shooter != null)
             {
                 hitChance *= ShotReport.HitFactorFromShooter(shooter, range);
@@ -130,7 +137,7 @@ namespace RangedDPS.StatUtilities
         /// <returns>The accuracy-adjusted ranged DPS of the weapon.</returns>
         /// <param name="range">The range of the shot.</param>
         /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
-        public float GetAdjustedDPS(float range, Thing shooter = null)
+        public float GetAdjustedDPS(float range, Thing? shooter = null)
         {
             return GetRawDPS(shooter as Pawn) * Math.Min(GetAdjustedHitChanceFactor(range, shooter), 1f);
         }
@@ -145,10 +152,10 @@ namespace RangedDPS.StatUtilities
         /// in general if not).
         /// </returns>
         /// <param name="shooter">(Optional) The turret or pawn shooting the weapon.</param>
-        public float FindOptimalRange(Thing shooter = null)
+        public float FindOptimalRange(Thing? shooter = null)
         {
-            int minRangeInt = (int)Math.Max(1.0, Math.Ceiling(MinRange));
-            int maxRangeInt = (int)Math.Floor(MaxRange);
+            var minRangeInt = (int)Math.Max(1.0, Math.Ceiling(MinRange));
+            var maxRangeInt = (int)Math.Floor(MaxRange);
             return Enumerable.Range(minRangeInt, maxRangeInt).MaxBy(range => GetAdjustedHitChanceFactor(range, shooter));
         }
     }

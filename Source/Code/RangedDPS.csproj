@@ -9,6 +9,7 @@
     <AssemblyName>RangedDPS</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <RimworldFolder Condition=" '$(RimworldFolder)' == '' ">..\..\..\..\..\RimWorldWin64_Data</RimworldFolder>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
