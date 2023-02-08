@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using Verse;
 
@@ -13,15 +14,18 @@ namespace RangedDPS.GUIUtils
         private readonly Action<Pawn> selectPawn;
 
         [TweakValue("___RangedDPS", 0f, 100f)]
-        private static float SelectPawnEntryHeight = 35f;
+        [UsedImplicitly]
+        private static float PawnEntryHeight = 35f;
 
         [TweakValue("___RangedDPS", 0f, 200f)]
-        private static float SelectPawnAcceptWidth = 70f;
+        [UsedImplicitly]
+        private static float AcceptWidth = 70f;
 
         [TweakValue("___RangedDPS", 0f, 10f)]
+        [UsedImplicitly]
         private static float SelectPawnIconMargin = 3f;
 
-        protected override float EntryHeight => SelectPawnEntryHeight;
+        protected override float EntryHeight => PawnEntryHeight;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:RangedDPS.GUIUtils.ScrollableList_PawnSelect"/> class.
@@ -44,7 +48,7 @@ namespace RangedDPS.GUIUtils
             if (selected)
                 Widgets.DrawHighlightSelected(inRect);
 
-            (Rect icon, Rect name, Rect button) = inRect.SplitVerticallyThreeWay(SelectPawnEntryHeight, SelectPawnAcceptWidth);
+            var (icon, name, button) = inRect.SplitVerticallyThreeWay(PawnEntryHeight, AcceptWidth);
 
             Widgets.ThingIcon(icon.Margin(SelectPawnIconMargin), entry);
             Widgets.Label(name, entry.LabelCap);

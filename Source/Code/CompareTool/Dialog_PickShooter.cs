@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using RangedDPS.GUIUtils;
 using RangedDPS.StatUtilities;
@@ -35,25 +37,47 @@ namespace RangedDPS.CompareTool
 
         [TweakValue("___RangedDPS", 0f, 20f)]
         [UsedImplicitly]
-        private static float PickShooterMargin = 6f;
+        private static float MainMargin = 6f;
 
         [TweakValue("___RangedDPS", 0f, 200f)]
         [UsedImplicitly]
-        private static float PickShooterTabWidth = 100f;
+        private static float TabWidth = 100f;
+        
+        [TweakValue("___RangedDPS", 0f, 300f)]
+        [UsedImplicitly]
+        private static float IconWidth = 150f;
+        
+        [TweakValue("___RangedDPS", 0f, 20f)]
+        [UsedImplicitly]
+        private static float IconMargin = 6f;
+        
+        [TweakValue("___RangedDPS", 0f, 60f)]
+        [UsedImplicitly]
+        private static float StatHeight = 32f;
+        
+        [TweakValue("___RangedDPS", 300f, 1000f)]
+        [UsedImplicitly]
+        private static float Height = 500f;
+        
+        [TweakValue("___RangedDPS", 300f, 1000f)]
+        [UsedImplicitly]
+        private static float Width = 500f;
 
-        private readonly Action<ShooterStats> callback;
+        private readonly Action<ShooterStats?> callback;
 
         private readonly List<TabRecord> tabs;
         private readonly ScrollableList_PawnSelect colonistList;
 
         private Pawn? selectedPawn;
-        private ShooterStats shooterStats;
+        private ShooterStats? shooterStats;
 
         private ShooterTab currentTab;
 
-        public override Vector2 InitialSize => new Vector2(500f, 500f);
+        private Vector2 statScrollPosition = new(0f, 0f);
 
-        public Dialog_PickShooter(Action<ShooterStats> callback, ShooterStats currentStats)
+        public override Vector2 InitialSize => new(Height, Width);
+
+        public Dialog_PickShooter(Action<ShooterStats?> callback, ShooterStats? currentStats)
         {
             forcePause = true;
             doCloseX = true;
@@ -67,8 +91,8 @@ namespace RangedDPS.CompareTool
             tabs = new List<TabRecord>
             {
                 //TODO translate
-                new TabRecord("Colonist", () => currentTab = ShooterTab.Colonist, () => currentTab == ShooterTab.Colonist),
-                new TabRecord("Simulated", () => currentTab = ShooterTab.Simulated, () => currentTab == ShooterTab.Simulated)
+                new("Colonist", () => currentTab = ShooterTab.Colonist, () => currentTab == ShooterTab.Colonist),
+                new("Simulated", () => currentTab = ShooterTab.Simulated, () => currentTab == ShooterTab.Simulated)
             };
 
             // TODO is this the right list?
@@ -102,7 +126,7 @@ namespace RangedDPS.CompareTool
 
             shooterSelect.y += 32f; // Add space for tabs
             Widgets.DrawMenuSection(shooterSelect);
-            TabDrawer.DrawTabs(shooterSelect, tabs, PickShooterTabWidth);
+            TabDrawer.DrawTabs(shooterSelect, tabs, TabWidth);
 
             switch (currentTab)
             {
@@ -128,19 +152,73 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoShooterDisplay(Rect inRect)
         {
-            var content = inRect.Margin(PickShooterMargin);
+            var content = inRect.Margin(MainMargin);
 
-            if (shooterStats is PawnShooterStats pawnStats)
+            switch (shooterStats)
             {
-                //TODO
-            }
-            else if (shooterStats is SimulatedShooterStats simStats)
-            {
-                //TODO
-            }
-            else
-            {
-                Widgets.Label(content, "(None)"); // TODO 
+                case PawnShooterStats pawnStats:
+                {
+                    var pawn = pawnStats.Pawn;
+                    content.SplitVertically(IconWidth, out var pawnDisplay, out var statsDisplay);
+
+                    // Draw the pawn
+                    pawnDisplay.SplitHorizontally(IconWidth, out var pawnIcon, out var pawnName);
+                    Widgets.ThingIcon(pawnIcon.Margin(IconMargin), pawn);
+                    Widgets.Label(pawnName, pawn.LabelCap);
+
+                    // Draw the pawn's stats
+                    statsDisplay.SplitHorizontally(StatHeight, out var statsPane, out var statsExplanation);
+
+                    // TODO translate
+                    var shootingAccuracyWorker = StatDefOf.ShootingAccuracyPawn.Worker;
+                    var aimSpeedWorker = StatDefOf.AimingDelayFactor.Worker;
+                    var statRequest = StatRequest.For(pawn);
+
+                    var stringBuilder = new StringBuilder();
+                    stringBuilder.AppendLine($"Shooting Accuracy: {shootingAccuracyWorker.GetValue(statRequest):P}");
+                    stringBuilder.AppendLine($"Aiming Time: {aimSpeedWorker.GetValue(statRequest):P}");
+                    Widgets.Label(statsPane, stringBuilder.ToString());
+
+                    stringBuilder = new StringBuilder();
+                    stringBuilder.AppendLine(shootingAccuracyWorker
+                        .GetExplanationUnfinalized(statRequest, ToStringNumberSense.Factor).TrimEndNewlines());
+                    stringBuilder.AppendLine();
+                    stringBuilder.AppendLine(" ------------------------------- ");
+                    stringBuilder.AppendLine();
+                    stringBuilder.AppendLine(aimSpeedWorker
+                        .GetExplanationUnfinalized(statRequest, ToStringNumberSense.Factor).TrimEndNewlines());
+                    var explanation = stringBuilder.ToString();
+                    var lines = explanation.Count(c => c.Equals('\n')) + 1;
+                    var height = Text.LineHeight * lines + Text.SpaceBetweenLines * (lines - 1);
+
+                    var viewRect = new Rect
+                    {
+                        width = statsExplanation.width,
+                        height = height
+                    };
+                    Widgets.BeginScrollView(statsExplanation, ref statScrollPosition, viewRect);
+                    GUI.BeginGroup(viewRect);
+                    try
+                    {
+                        Widgets.Label(viewRect, explanation);
+                    }
+                    finally
+                    {
+                        GUI.EndGroup();
+                        Widgets.EndScrollView();
+                    }
+                    break;
+                }
+                case SimulatedShooterStats simStats:
+                {
+                    //TODO
+                    break;
+                }
+                default:
+                {
+                    Widgets.Label(content, "(None)"); // TODO 
+                    break;
+                }
             }
         }
 
@@ -150,7 +228,7 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoColonistTab(Rect inRect)
         {
-            var content = inRect.Margin(PickShooterMargin);
+            var content = inRect.Margin(MainMargin);
             colonistList.Draw(content, selectedPawn.YieldIfNotNull());
         }
 
@@ -171,6 +249,7 @@ namespace RangedDPS.CompareTool
         {
             selectedPawn = pawn;
             shooterStats = new PawnShooterStats(pawn);
+            statScrollPosition = new Vector2(0f, 0f);
         }
     }
 }
