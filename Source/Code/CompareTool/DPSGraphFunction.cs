@@ -11,10 +11,10 @@ namespace RangedDPS.CompareTool
     internal class GraphFunction_DPS : GraphFunction
     {
         private readonly RangedWeaponStats weapon;
-        private readonly ShooterStats shooter;
-        private readonly TargetStats target;
+        private readonly ShooterStats? shooter;
+        private readonly TargetStats? target;
 
-        public GraphFunction_DPS(RangedWeaponStats weapon, ShooterStats shooter = null, TargetStats target = null)
+        public GraphFunction_DPS(RangedWeaponStats weapon, ShooterStats? shooter = null, TargetStats? target = null)
         {
             this.weapon = weapon;
             this.shooter = shooter;
@@ -28,14 +28,8 @@ namespace RangedDPS.CompareTool
         /// <returns>The thing.</returns>
         /// <param name="weapon">Weapon thing.</param>
         /// <param name="shooter">Shooter.</param>
-        public static GraphFunction_DPS FromGun(Thing weapon, Pawn shooter = null)
+        public static GraphFunction_DPS FromGun(Thing weapon, Pawn? shooter = null)
         {
-            if (weapon == null)
-            {
-                Log.Error($"[RangedDPS] Tried to get the ranged weapon stats of a null weapon");
-                return null;
-            }
-
             if (!weapon.def.IsRangedWeapon)
             {
                 Log.Error($"[RangedDPS] Tried to get the ranged weapon stats of {weapon.def.defName}, which is not a ranged weapon");
@@ -72,9 +66,9 @@ namespace RangedDPS.CompareTool
     internal class GraphFunction_TurretDPS : GraphFunction
     {
         private readonly TurretGunStats turret;
-        private readonly TargetStats target;
+        private readonly TargetStats? target;
 
-        public GraphFunction_TurretDPS(TurretGunStats turret, TargetStats target = null)
+        public GraphFunction_TurretDPS(TurretGunStats turret, TargetStats? target = null)
         {
             this.turret = turret;
             this.target = target;
@@ -87,12 +81,6 @@ namespace RangedDPS.CompareTool
         /// <param name="turret">Turret building.</param>
         public static GraphFunction_TurretDPS FromTurret(Building_TurretGun turret)
         {
-            if (turret == null)
-            {
-                Log.Error($"[RangedDPS] Tried to get the ranged weapon stats of a null turret");
-                return null;
-            }
-
             return new GraphFunction_TurretDPS(new TurretGunStats(turret));
         }
 

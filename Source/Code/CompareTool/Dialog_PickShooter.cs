@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using JetBrains.Annotations;
 using RangedDPS.GUIUtils;
 using RangedDPS.StatUtilities;
 using RangedDPS.Utilities;
@@ -34,9 +34,11 @@ namespace RangedDPS.CompareTool
         }
 
         [TweakValue("___RangedDPS", 0f, 20f)]
+        [UsedImplicitly]
         private static float PickShooterMargin = 6f;
 
         [TweakValue("___RangedDPS", 0f, 200f)]
+        [UsedImplicitly]
         private static float PickShooterTabWidth = 100f;
 
         private readonly Action<ShooterStats> callback;
@@ -44,7 +46,7 @@ namespace RangedDPS.CompareTool
         private readonly List<TabRecord> tabs;
         private readonly ScrollableList_PawnSelect colonistList;
 
-        private Pawn selectedPawn;
+        private Pawn? selectedPawn;
         private ShooterStats shooterStats;
 
         private ShooterTab currentTab;
@@ -91,9 +93,9 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         public override void DoWindowContents(Rect inRect)
         {
-            Rect content = inRect.Margins(bottomMargin: 40f); // the accept button is 35 pixes + some extra
+            var content = inRect.Margins(bottomMargin: 40f); // the accept button is 35 pixes + some extra
 
-            (Rect shooterDisplay, Rect shooterSelect, Rect buttons) = inRect.SplitHorizontallyThreeWay(200f, 35f, 6f);
+            var (shooterDisplay, shooterSelect, buttons) = content.SplitHorizontallyThreeWay(200f, 35f, 6f);
 
             Widgets.DrawMenuSection(shooterDisplay);
             DoShooterDisplay(shooterDisplay);
@@ -126,15 +128,15 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoShooterDisplay(Rect inRect)
         {
-            Rect content = inRect.Margin(PickShooterMargin);
+            var content = inRect.Margin(PickShooterMargin);
 
             if (shooterStats is PawnShooterStats pawnStats)
             {
-
+                //TODO
             }
             else if (shooterStats is SimulatedShooterStats simStats)
             {
-
+                //TODO
             }
             else
             {
@@ -148,7 +150,7 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoColonistTab(Rect inRect)
         {
-            Rect content = inRect.Margin(PickShooterMargin);
+            var content = inRect.Margin(PickShooterMargin);
             colonistList.Draw(content, selectedPawn.YieldIfNotNull());
         }
 

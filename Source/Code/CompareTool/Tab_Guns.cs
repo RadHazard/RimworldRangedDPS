@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using RangedDPS.GUIUtils;
 using RangedDPS.StatUtilities;
 using RangedDPS.Utilities;
@@ -14,9 +15,11 @@ namespace RangedDPS.CompareTool
     public class Tab_Guns : Tab
     {
         [TweakValue("___RangedDPS", 0f, 100f)]
+        [UsedImplicitly]
         private static float GunsMenuTopSection = 100f;
 
         [TweakValue("___RangedDPS", 0f, 10f)]
+        [UsedImplicitly]
         private static float GunsMenuShooterTargetMargin = 2f;
 
         // TODO translation
@@ -24,7 +27,7 @@ namespace RangedDPS.CompareTool
 
         public override string Label => "Guns";//label.Value;
 
-        private ShooterStats shooter;
+        private ShooterStats? shooter;
 
         private TargetStats target = TargetStats.StandardTarget;
 
@@ -77,10 +80,10 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">The rectangle to draw within.</param>
         protected override void DoMenuContents(Rect inRect)
         {
-            inRect.SplitHorizontally(GunsMenuTopSection, out Rect shooterTargetRect, out Rect gunsRect);
+            inRect.SplitHorizontally(GunsMenuTopSection, out var shooterTargetRect, out var gunsRect);
 
-            Rect shooterRect = shooterTargetRect.LeftHalf().Margin(GunsMenuShooterTargetMargin);
-            Rect targetRect = shooterTargetRect.RightHalf().Margin(GunsMenuShooterTargetMargin);
+            var shooterRect = shooterTargetRect.LeftHalf().Margin(GunsMenuShooterTargetMargin);
+            var targetRect = shooterTargetRect.RightHalf().Margin(GunsMenuShooterTargetMargin);
 
             DoShooterWidget(shooterRect);
             DoTargetWidget(targetRect);
@@ -92,7 +95,7 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoShooterWidget(Rect inRect)
         {
-            string shooterLabel = shooter?.Label ?? "(none)"; // TODO translate
+            var shooterLabel = shooter?.Label ?? "(none)"; // TODO translate
             if (Widgets.ButtonText(inRect, shooterLabel))
             {
                 Find.WindowStack.Add(new Dialog_PickShooter(s => shooter = s, shooter));
@@ -105,7 +108,7 @@ namespace RangedDPS.CompareTool
         /// <param name="inRect">In rect.</param>
         private void DoTargetWidget(Rect inRect)
         {
-            string targetLabel = target?.Label ?? "(none)"; // TODO translate
+            var targetLabel = target?.Label ?? "(none)"; // TODO translate
             if (Widgets.ButtonText(inRect, targetLabel))
             {
                 //TODO

@@ -27,30 +27,30 @@ namespace RangedDPS.GUIUtils
         /// </summary>
         /// <param name="inRect">In rect.</param>
         /// <param name="selectedEntries">(Optional) the entries that are currently selected, if any</param>
-        public void Draw(in Rect inRect, IEnumerable<T> selectedEntries = null)
+        public void Draw(in Rect inRect, IEnumerable<T>? selectedEntries = null)
         {
-            HashSet<T> selected = new HashSet<T>(selectedEntries ?? Enumerable.Empty<T>());
+            var selected = new HashSet<T>(selectedEntries ?? Enumerable.Empty<T>());
 
             // Cache these for performance reasons in case the underlying calls are expensive
             // (they shouldn't be changing in the middle of a draw operation anyway)
-            float entryHeight = EntryHeight;
+            var entryHeight = EntryHeight;
 
-            Rect viewRect = new Rect
+            var viewRect = new Rect
             {
                 width = inRect.width,
                 height = entryHeight * entries.Count
             };
 
-            int firstVisibleEntry = Mathf.Clamp(Mathf.FloorToInt(scrollPosition.y / entryHeight), 0, entries.Count - 1);
-            int lastVisibleEntry = Mathf.Clamp(Mathf.CeilToInt((scrollPosition.y + inRect.height) / entryHeight) + 1, 0, entries.Count - 1);
+            var firstVisibleEntry = Mathf.Clamp(Mathf.FloorToInt(scrollPosition.y / entryHeight), 0, entries.Count - 1);
+            var lastVisibleEntry = Mathf.Clamp(Mathf.CeilToInt((scrollPosition.y + inRect.height) / entryHeight) + 1, 0, entries.Count - 1);
 
-            Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect, true);
+            Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect);
             GUI.BeginGroup(viewRect);
             try
             {
-                for (int i = firstVisibleEntry; i <= lastVisibleEntry; i++)
+                for (var i = firstVisibleEntry; i <= lastVisibleEntry; i++)
                 {
-                    T entry = entries[i];
+                    var entry = entries[i];
                     DrawEntry(entry, new Rect(0, i * entryHeight, viewRect.width, entryHeight), selected.Contains(entry));
                 }
             }
