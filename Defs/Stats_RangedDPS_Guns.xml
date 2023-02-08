@@ -3,7 +3,7 @@
 
   <StatDef>
     <defName>RangedWeapon_AverageDPS</defName>
-    <workerClass>RangedDPS.StatWorker_RangedWeaponDPS</workerClass>
+    <workerClass>RangedDPS.StatWorkers.StatWorker_RangedWeaponDPS</workerClass>
     <label>average ranged DPS</label>
     <description>Average potential damage dealt per second in ranged combat at the optimal range of this weapon.\n\nThis stat doesn't factor in the shooter's skill or target defenses like cover and armor, so the actual value will be lower.</description>
     <category>Weapon</category>
@@ -16,7 +16,7 @@
 
   <StatDef>
     <defName>RangedWeapon_MaxDPS</defName>
-    <workerClass>RangedDPS.StatWorker_RangedMaxDPS</workerClass>
+    <workerClass>RangedDPS.StatWorkers.StatWorker_RangedMaxDPS</workerClass>
     <label>max ranged DPS</label>
     <description>Maximum possible damage dealt per second in ranged combat, assuming all shots were to hit.  This is the maximum possible DPS you could get out of this gun in a target-rich environment.\n\nThis stat doesn't factor in accuracy or target defenses like cover and armor, so the actual value will be lower.</description>
     <category>Weapon</category>
@@ -29,7 +29,7 @@
 
   <StatDef>
     <defName>RangedWeapon_PawnDPS</defName>
-    <workerClass>RangedDPS.StatWorker_RangedShooterDPS</workerClass>
+    <workerClass>RangedDPS.StatWorkers.StatWorker_RangedShooterDPS</workerClass>
     <label>ranged DPS</label>
     <description>Average damage per second this pawn can deal in ranged combat, factoring in both the weapon and this pawn's shooting accuracy.\n\nThis stat doesn't factor in target defenses like cover and armor, but is accurate for unarmored targets not in cover.</description>
     <category>PawnCombat</category>
