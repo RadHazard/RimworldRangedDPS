@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using JetBrains.Annotations;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -12,32 +13,42 @@ namespace RangedDPS.StatUtilities
     /// </summary>
     public abstract class RangedWeaponStats
     {
-        public abstract string Label { get; }
+        [PublicAPI] public abstract string Label { get; }
 
-        public abstract float Warmup { get; }
-        public abstract float Cooldown { get; }
+        [PublicAPI] public abstract float Warmup { get; }
+        [PublicAPI] public abstract float Cooldown { get; }
 
-        public abstract int ShotDamage { get; }
-        public abstract float ArmorPenetration { get; }
+        [PublicAPI] public abstract int ShotDamage { get; }
+        [PublicAPI] public abstract float ArmorPenetration { get; }
 
-        public abstract int BurstShotCount { get; }
-        public abstract int BurstDelayTicks { get; }
+        [PublicAPI] public abstract int BurstShotCount { get; }
+        [PublicAPI] public abstract int BurstDelayTicks { get; }
 
-        public abstract float MinRange { get; }
-        public abstract float MaxRange { get; }
+        [PublicAPI] public abstract float MinRange { get; }
+        [PublicAPI] public abstract float MaxRange { get; }
 
-        public abstract float AccuracyTouch { get; }
-        public abstract float AccuracyShort { get; }
-        public abstract float AccuracyMedium { get; }
-        public abstract float AccuracyLong { get; }
+        [PublicAPI] public abstract float AccuracyTouch { get; }
+        [PublicAPI] public abstract float AccuracyShort { get; }
+        [PublicAPI] public abstract float AccuracyMedium { get; }
+        [PublicAPI] public abstract float AccuracyLong { get; }
 
-        protected VerbProperties GetShootVerb(ThingDef thingDef)
+        /// <summary>
+        /// Gets the shoot verb of the given ThingDef
+        /// </summary>
+        /// <param name="thingDef">The ThingDef to get the verb from</param>
+        /// <returns>The shoot verb</returns>
+        protected static VerbProperties GetShootVerb(ThingDef thingDef)
         {
-            // Note - the game uses the first shoot verb and ignores the rest for whatever reason.  Do the same here
+            // Note - the game uses the first shoot verb and ignores the rest for whatever reason.  Do the same here.
+            // TODO - check if this is still true in 1.4
             var verb = (from v in thingDef.Verbs
                         where !v.IsMeleeAttack
                         select v).FirstOrDefault();
-            if (verb == null) Log.Error($"[RangedDPS] Could not find a valid shoot verb for ThingDef {thingDef.defName}");
+            if (verb == null)
+            {
+                Log.Error($"[RangedDPS] Could not find a valid shoot verb for ThingDef {thingDef.defName}!");
+                verb = new VerbProperties(); // Make a null object to avoid cascading NPEs
+            }
             return verb;
         }
 
@@ -47,9 +58,10 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The raw ranged DPS of the weapon.</returns>
         /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
-        public float GetFullCycleTime(ShooterStats shooter = null)
+        [PublicAPI]
+        public float GetFullCycleTime(ShooterStats? shooter = null)
         {
-            float aimFactor = shooter?.AimSpeed ?? 1f;
+            var aimFactor = shooter?.AimSpeed ?? 1f;
             return (Warmup * aimFactor) + Cooldown + ((BurstShotCount - 1) * BurstDelayTicks).TicksToSeconds();
         }
 
@@ -60,10 +72,10 @@ namespace RangedDPS.StatUtilities
         /// <returns>The raw ranged DPS of the weapon.</returns>
         /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float GetRawDPS(ShooterStats shooter = null, TargetStats target = null)
+        [PublicAPI]
+        public float GetRawDPS(ShooterStats? shooter = null, TargetStats? target = null)
         {
-            if (target == null)
-                target = TargetStats.StandardTarget;
+            target ??= TargetStats.StandardTarget;
 
             return ShotDamage * target.GetSharpDamageReduction(ArmorPenetration) * BurstShotCount / GetFullCycleTime(shooter);
         }
@@ -78,7 +90,8 @@ namespace RangedDPS.StatUtilities
         /// <param name="range">The range of the shot.</param>
         /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float GetAdjustedHitChance(float range, ShooterStats shooter = null, TargetStats target = null)
+        [PublicAPI]
+        public float GetAdjustedHitChance(float range, ShooterStats? shooter = null, TargetStats? target = null)
         {
             // replicated from ShootVerb.GetHitChanceFactor()
             float hitChance;
@@ -112,7 +125,8 @@ namespace RangedDPS.StatUtilities
         /// <param name="range">The range of the shot.</param>
         /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float GetAdjustedDPS(float range, ShooterStats shooter = null, TargetStats target = null)
+        [PublicAPI]
+        public float GetAdjustedDPS(float range, ShooterStats? shooter = null, TargetStats? target = null)
         {
             return GetRawDPS(shooter, target) * Math.Min(GetAdjustedHitChance(range, shooter, target), 1f);
         }
@@ -128,10 +142,11 @@ namespace RangedDPS.StatUtilities
         /// </returns>
         /// <param name="shooter">(Optional) The shooter wielding the weapon, or null if we're just looking at a weapon in the abstract</param>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float FindOptimalRange(ShooterStats shooter = null, TargetStats target = null)
+        [PublicAPI]
+        public float FindOptimalRange(ShooterStats? shooter = null, TargetStats? target = null)
         {
-            int minRangeInt = Math.Max(1, Mathf.CeilToInt(MinRange));
-            int maxRangeInt = Mathf.FloorToInt(MaxRange);
+            var minRangeInt = Math.Max(1, Mathf.CeilToInt(MinRange));
+            var maxRangeInt = Mathf.FloorToInt(MaxRange);
             return Enumerable.Range(minRangeInt, maxRangeInt).MaxBy(range => GetAdjustedHitChance(range, shooter, target));
         }
     }
@@ -143,12 +158,12 @@ namespace RangedDPS.StatUtilities
     {
         private readonly Thing weapon;
         private readonly VerbProperties shootVerb;
-        private readonly ProjectileProperties projectile;
+        private readonly ProjectileProperties? projectile;
 
         public override string Label => weapon.LabelCap;
 
         public override float Warmup => shootVerb.warmupTime;
-        public override float Cooldown => weapon.GetStatValue(StatDefOf.RangedWeapon_Cooldown, true);
+        public override float Cooldown => weapon.GetStatValue(StatDefOf.RangedWeapon_Cooldown);
 
         public override int ShotDamage => projectile?.GetDamageAmount(weapon) ?? 0;
         public override float ArmorPenetration => projectile?.GetArmorPenetration(weapon) ?? 0;
@@ -178,16 +193,16 @@ namespace RangedDPS.StatUtilities
     public class TurretGunStats : RangedWeaponStats
     {
         private readonly Building_TurretGun turret;
-        private readonly CompRefuelable compRefuelable;
+        private readonly CompRefuelable? compRefuelable;
         private readonly VerbProperties shootVerb;
-        private readonly ProjectileProperties projectile;
-        private readonly float cooldown;
+        private readonly ProjectileProperties? projectile;
 
         public override string Label => turret.gun.LabelCap;
 
         // Note that turrets completely ignore the warmup and cooldown stat of the weapon
-        public override float Warmup => turret.def.building.turretBurstWarmupTime;
-        public override float Cooldown => cooldown;
+        // 1.4 changed this into a range, but averaging it out gives the same result
+        public override float Warmup => turret.def.building.turretBurstWarmupTime.Average;
+        public override float Cooldown { get; }
 
         public override int ShotDamage => projectile?.GetDamageAmount(turret.gun) ?? 0;
         public override float ArmorPenetration => projectile?.GetArmorPenetration(turret.gun) ?? 0;
@@ -207,23 +222,26 @@ namespace RangedDPS.StatUtilities
         /// The shooter stats of this turret
         /// </summary>
         /// <value>The shooter.</value>
+        [PublicAPI]
         public ShooterStats Shooter { get; }
 
         /// <summary>
         /// Gets a value indicating whether this turret uses fuel (barrel refurbishing, ammo, etc.).
         /// </summary>
         /// <value><c>true</c> if needs fuel; otherwise, <c>false</c>.</value>
+        [PublicAPI]
         public bool NeedsFuel => compRefuelable != null;
 
         /// <summary>
         /// Gets the amount of shots this turret can shoot per unit of fuel
         /// </summary>
         /// <value>The fuel per shot, or float.MaxValue if the turret does not use fuel.</value>
+        [PublicAPI]
         public float ShotsPerFuel
         {
             get
             {
-                if (!NeedsFuel) return float.MaxValue;
+                if (compRefuelable == null) return float.MaxValue;
                 return compRefuelable.Props.FuelMultiplierCurrentDifficulty;
             }
         }
@@ -233,11 +251,12 @@ namespace RangedDPS.StatUtilities
         /// Returns 0 if the turret does not use fuel.
         /// </summary>
         /// <value>The fuel per damage, or float.MaxValue if the turret does not use fuel.</value>
+        [PublicAPI]
         public float DamagePerFuel
         {
             get
             {
-                if (!NeedsFuel) return float.MaxValue;
+                if (compRefuelable == null) return float.MaxValue;
                 return ShotsPerFuel * ShotDamage;
             }
         }
@@ -247,6 +266,7 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The accuracy-adjusted ranged damage per fuel of the turret.</returns>
         /// <param name="range">The range of the shot.</param>
+        [PublicAPI]
         public float GetAdjustedDamagePerFuel(float range)
         {
             return DamagePerFuel * Math.Min(GetTurretAdjustedHitChance(range), 1f);
@@ -259,15 +279,15 @@ namespace RangedDPS.StatUtilities
             compRefuelable = turret.TryGetComp<CompRefuelable>();
             shootVerb = GetShootVerb(turret.gun.def);
 
-            // Note that the projectile can potentially be null if the weapon is loadable, like a morter
+            // Note that the projectile can potentially be null if the weapon is loadable, like a mortar
             projectile = turret.gun.TryGetComp<CompChangeableProjectile>()?.Projectile?.projectile
                     ?? shootVerb.defaultProjectile?.projectile;
 
             // Logic duplicated from Building_TurretGun.BurstCooldownTime()
             if (turret.def.building.turretBurstCooldownTime >= 0f)
-                cooldown = turret.def.building.turretBurstCooldownTime;
+                Cooldown = turret.def.building.turretBurstCooldownTime;
             else
-                cooldown = turret.AttackVerb.verbProps.defaultCooldownTime;
+                Cooldown = turret.AttackVerb.verbProps.defaultCooldownTime;
         }
 
         /// <summary>
@@ -275,7 +295,8 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The raw ranged DPS of the turret.</returns>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float GetTurretRawDPS(TargetStats target = null) => GetRawDPS(Shooter, target);
+        [PublicAPI]
+        public float GetTurretRawDPS(TargetStats? target = null) => GetRawDPS(Shooter, target);
 
         /// <summary>
         /// Gets the adjusted hit chance of a shot.  This is the chance a shot from this turret will hit, taking into
@@ -286,7 +307,8 @@ namespace RangedDPS.StatUtilities
         /// <returns>The adjusted hit chance factor.</returns>
         /// <param name="range">The range of the shot.</param>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float GetTurretAdjustedHitChance(float range, TargetStats target = null) => GetAdjustedHitChance(range, Shooter, target);
+        [PublicAPI]
+        public float GetTurretAdjustedHitChance(float range, TargetStats? target = null) => GetAdjustedHitChance(range, Shooter, target);
 
         /// <summary>
         /// Gets the accuracy-adjusted DPS of this turret at a particular range.
@@ -294,7 +316,8 @@ namespace RangedDPS.StatUtilities
         /// <returns>The accuracy-adjusted ranged DPS of the weapon.</returns>
         /// <param name="range">The range of the shot.</param>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float GetTurretAdjustedDPS(float range, TargetStats target = null) => GetAdjustedDPS(range, Shooter, target);
+        [PublicAPI]
+        public float GetTurretAdjustedDPS(float range, TargetStats? target = null) => GetAdjustedDPS(range, Shooter, target);
 
         /// <summary>
         /// Calculates and returns the optimal range of the turret + gun (the range at which accuracy is highest).
@@ -302,6 +325,7 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The range, in cells, at which this turret performs best</returns>
         /// <param name="target">(Optional) The target we're shooting at, or null to assume an unarmored human not in cover</param>
-        public float FindTurretOptimalRange(TargetStats target = null) => FindOptimalRange(Shooter, target);
+        [PublicAPI]
+        public float FindTurretOptimalRange(TargetStats? target = null) => FindOptimalRange(Shooter, target);
     }
 }

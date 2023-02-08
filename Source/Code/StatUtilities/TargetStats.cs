@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using JetBrains.Annotations;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -14,20 +15,21 @@ namespace RangedDPS.StatUtilities
         /// Equivalent to an unarmored human not in cover
         /// </summary>
         /// <value>The standard target.</value>
-        public static TargetStats StandardTarget { get; } = new SimulatedTargetStats();
+        [PublicAPI] public static TargetStats StandardTarget { get; } = new SimulatedTargetStats();
 
-        public abstract string Label { get; }
+        [PublicAPI] public abstract string Label { get; }
 
-        public abstract float Size { get; }
-        public abstract float Cover { get; }
+        [PublicAPI] public abstract float Size { get; }
+        [PublicAPI] public abstract float Cover { get; }
 
-        public float TotalHitFactor => Size * (1f - Cover);
+        [PublicAPI] public float TotalHitFactor => Size * (1f - Cover);
 
         /// <summary>
         /// Calculates the effective damage reduction of this target's sharp armor against the specified armor penetration
         /// </summary>
         /// <returns>The damage reduction.</returns>
         /// <param name="armorPenetration">The armor penetration of the weapon.</param>
+        [PublicAPI]
         public abstract float GetSharpDamageReduction(float armorPenetration = 0f);
 
         /// <summary>
@@ -35,6 +37,7 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The damage reduction.</returns>
         /// <param name="armorPenetration">The armor penetration of the weapon.</param>
+        [PublicAPI]
         public abstract float GetBluntDamageReduction(float armorPenetration = 0f);
 
         /// <summary>
@@ -42,6 +45,7 @@ namespace RangedDPS.StatUtilities
         /// </summary>
         /// <returns>The damage reduction.</returns>
         /// <param name="armorPenetration">The armor penetration of the weapon.</param>
+        [PublicAPI]
         public abstract float GetHeatDamageReduction(float armorPenetration = 0f);
 
 
@@ -49,18 +53,19 @@ namespace RangedDPS.StatUtilities
         /// Calculates the effective damage reduction of a given armor rating and a specified armor penetration
         /// </summary>
         /// <returns>The damage reduction.</returns>
+        /// <param name="armor">The armor value of the target</param>
         /// <param name="armorPenetration">The armor penetration of the weapon.</param>
         protected static float GetArmorDamageReduction(float armor, float armorPenetration)
         {
-            float effectiveArmor = Mathf.Max(armor - armorPenetration, 0f);
+            var effectiveArmor = Mathf.Max(armor - armorPenetration, 0f);
 
             // Vanilla rolls a random float [0 - 1)
             // if x < armor/2, the attack deflects harmlessly
             // if armor/2 < x < armor, the attack does half damage
             // otherwise, it does full damage
-            float blockChance = Mathf.Min(effectiveArmor / 2f, 1f);
-            float mitigationChance = Mathf.Min(effectiveArmor / 2f, 1f - blockChance);
-            float penetrateChance = Mathf.Max(1f - (blockChance + mitigationChance), 0f);
+            var blockChance = Mathf.Min(effectiveArmor / 2f, 1f);
+            var mitigationChance = Mathf.Min(effectiveArmor / 2f, 1f - blockChance);
+            var penetrateChance = Mathf.Max(1f - (blockChance + mitigationChance), 0f);
 
             return penetrateChance + (mitigationChance / 2);
         }
@@ -76,7 +81,7 @@ namespace RangedDPS.StatUtilities
 
         private readonly ArmorStats armor;
 
-        public override string Label => $"Size {size.ToString("0.0")} target";
+        public override string Label => $"Size {size:0.0} target";
         public override float Size => size;
         public override float Cover => cover;
 
@@ -114,8 +119,9 @@ namespace RangedDPS.StatUtilities
 
         private float GetArmorDamageReduction(StatDef armorStat, float extraArmor, float armorPenetration)
         {
+            // TODO - handle layered armor better
             // Vanilla rolls against each individual armor piece separately, so we have to calculate them separately
-            return GetArmorDamageReduction(pawn.GetStatValue(armorStat, true), armorPenetration)
+            return GetArmorDamageReduction(pawn.GetStatValue(armorStat), armorPenetration)
                 * GetArmorDamageReduction(extraArmor, armorPenetration);
         }
 

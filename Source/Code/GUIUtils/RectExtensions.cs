@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
 
 namespace RangedDPS.GUIUtils
@@ -48,8 +47,8 @@ namespace RangedDPS.GUIUtils
         /// <param name="margin">(Optional) margin between the subrects</param>
         public static (Rect left, Rect center, Rect right) SplitVerticallyThreeWay(this Rect rect, float leftWidth, float rightWidth, float margin = 0f)
         {
-            rect.SplitVertically(leftWidth, out Rect left, out Rect remainder, margin);
-            remainder.SplitVertically(remainder.width - rightWidth, out Rect center, out Rect right, margin);
+            rect.SplitVerticallyWithMargin(out var left, out var remainder, out _, margin, leftWidth: leftWidth);
+            remainder.SplitVerticallyWithMargin(out var center, out var right, out _, margin, rightWidth: rightWidth);
             return (left, center, right);
         }
 
@@ -63,8 +62,8 @@ namespace RangedDPS.GUIUtils
         /// <param name="margin">(Optional) margin between the subrects</param>
         public static (Rect top, Rect center, Rect bottom) SplitHorizontallyThreeWay(this Rect rect, float topHeight, float bottomHeight, float margin = 0f)
         {
-            rect.SplitHorizontally(topHeight, out Rect top, out Rect remainder, margin);
-            remainder.SplitHorizontally(remainder.height - bottomHeight, out Rect center, out Rect bottom, margin);
+            rect.SplitHorizontallyWithMargin(out var top, out var remainder, out _, margin, topHeight: topHeight);
+            remainder.SplitHorizontallyWithMargin(out var center, out var bottom, out _, margin, bottomHeight: bottomHeight);
             return (top, center, bottom);
         }
     }

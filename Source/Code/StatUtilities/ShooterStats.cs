@@ -1,5 +1,4 @@
-﻿using System;
-using RimWorld;
+﻿using RimWorld;
 using Verse;
 
 namespace RangedDPS.StatUtilities
@@ -20,34 +19,32 @@ namespace RangedDPS.StatUtilities
     /// </summary>
     public class SimulatedShooterStats : ShooterStats
     {
-        protected readonly float shootingSkill;
-        protected readonly SimulatedShooterAim aimLevel;
+        private readonly float shootingSkill;
+        private readonly SimulatedShooterAim aimLevel;
 
         public override string Label
         {
             get
             {
-                if (aimLevel == SimulatedShooterAim.TriggerHappy)
-                    return $"Lvl {shootingSkill} (TH)"; // TODO translate
-                if (aimLevel == SimulatedShooterAim.CarefulShooter)
-                    return $"Lvl {shootingSkill} (CS)"; // TODO translate
-                return $"Lvl {shootingSkill}";//TODO translate
+                return aimLevel switch
+                {
+                    SimulatedShooterAim.TriggerHappy => $"Lvl {shootingSkill} (TH)",
+                    SimulatedShooterAim.CarefulShooter => $"Lvl {shootingSkill} (CS)",
+                    _ => $"Lvl {shootingSkill}"
+                };
             }
         }
 
-        protected float EffectiveShootingSkill
+        private float EffectiveShootingSkill
         {
             get
             {
-                switch (aimLevel)
+                return aimLevel switch
                 {
-                    case SimulatedShooterAim.CarefulShooter:
-                        return shootingSkill + 5f;
-                    case SimulatedShooterAim.TriggerHappy:
-                        return shootingSkill - 5f;
-                    default:
-                        return shootingSkill;
-                }
+                    SimulatedShooterAim.CarefulShooter => shootingSkill + 5f,
+                    SimulatedShooterAim.TriggerHappy => shootingSkill - 5f,
+                    _ => shootingSkill
+                };
             }
         }
 
@@ -55,15 +52,12 @@ namespace RangedDPS.StatUtilities
         {
             get
             {
-                switch (aimLevel)
+                return aimLevel switch
                 {
-                    case SimulatedShooterAim.CarefulShooter:
-                        return 1.25f;
-                    case SimulatedShooterAim.TriggerHappy:
-                        return 0.5f;
-                    default:
-                        return 1f;
-                }
+                    SimulatedShooterAim.CarefulShooter => 1.25f,
+                    SimulatedShooterAim.TriggerHappy => 0.5f,
+                    _ => 1f
+                };
             }
         }
 
@@ -100,8 +94,8 @@ namespace RangedDPS.StatUtilities
 
         public override string Label => Pawn.LabelShortCap;
 
-        public override float AimSpeed => Pawn.GetStatValue(StatDefOf.AimingDelayFactor, true);
-        public override float ShootingAccuracy => Pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn, true);
+        public override float AimSpeed => Pawn.GetStatValue(StatDefOf.AimingDelayFactor);
+        public override float ShootingAccuracy => Pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn);
 
         public PawnShooterStats(Pawn shooter)
         {
@@ -119,7 +113,7 @@ namespace RangedDPS.StatUtilities
         public override string Label => turret.LabelShortCap;
 
         public override float AimSpeed => 1f; // Turrets don't have an aim speed factor
-        public override float ShootingAccuracy => turret.GetStatValue(StatDefOf.ShootingAccuracyTurret, true);
+        public override float ShootingAccuracy => turret.GetStatValue(StatDefOf.ShootingAccuracyTurret);
 
         public TurretShooterStats(Building_TurretGun turret)
         {

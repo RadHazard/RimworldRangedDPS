@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace RangedDPS.Utilities
 {
@@ -11,7 +12,8 @@ namespace RangedDPS.Utilities
         /// Yields the item as an enumerable, regardless of whether it's null or not
         /// </summary>
         /// <param name="item">Item.</param>
-        public static IEnumerable<T> Yield<T>(this T item)
+        [PublicAPI]
+        public static IEnumerable<T?> Yield<T>(this T? item)
         {
             yield return item;
         }
@@ -20,12 +22,11 @@ namespace RangedDPS.Utilities
         /// Yields the item as an enumerable.  If item is null, the enumerable will be empty
         /// </summary>
         /// <param name="item">Item.</param>
-        public static IEnumerable<T> YieldIfNotNull<T>(this T item) where T : class
+        [PublicAPI]
+        public static IEnumerable<T> YieldIfNotNull<T>(this T? item)
         {
             if (item != null)
                 yield return item;
-            else
-                yield break;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using JetBrains.Annotations;
+using RimWorld;
 using Verse;
 
 namespace RangedDPS.Utilities
@@ -13,11 +14,12 @@ namespace RangedDPS.Utilities
         /// </summary>
         /// <returns>The thing.</returns>
         /// <param name="def">Def.</param>
-        /// <param name="stuffDef">Stuff def.</param>
-        /// <param name="quality">Quality.</param>
-        public static Thing MakeThingFromDef(ThingDef def, ThingDef stuffDef = null, QualityCategory quality = QualityCategory.Normal)
+        /// <param name="stuffDef">(Optional) Stuff def. Defaults to the default stuff.</param>
+        /// <param name="quality">(Optional) Quality. Defaults to normal.</param>
+        [PublicAPI]
+        public static Thing MakeThingFromDef(ThingDef def, ThingDef? stuffDef = null, QualityCategory quality = QualityCategory.Normal)
         {
-            Thing thing = ThingMaker.MakeThing(def, stuffDef ?? GenStuff.RandomStuffFor(def));
+            var thing = ThingMaker.MakeThing(def, stuffDef ?? GenStuff.DefaultStuffFor(def));
             thing.TryGetComp<CompQuality>()?.SetQuality(quality, ArtGenerationContext.Outsider);
 
             return thing;
@@ -28,11 +30,12 @@ namespace RangedDPS.Utilities
         /// </summary>
         /// <returns>The thing.</returns>
         /// <param name="def">Def.</param>
-        /// <param name="stuffDefName">Stuff def name.</param>
-        /// <param name="quality">Quality.</param>
-        public static Thing MakeThingFromDef(ThingDef def, string stuffDefName, QualityCategory quality = QualityCategory.Normal)
+        /// <param name="stuffDefName">(Optional) Stuff def name. Defaults to the default stuff.</param>
+        /// <param name="quality">(Optional) Quality. Defaults to normal.</param>
+        [PublicAPI]
+        public static Thing MakeThingFromDef(ThingDef def, string? stuffDefName = null, QualityCategory quality = QualityCategory.Normal)
         {
-            ThingDef stuff = (stuffDefName != null) ? DefDatabase<ThingDef>.GetNamed(stuffDefName) : GenStuff.RandomStuffFor(def);
+            var stuff = stuffDefName != null ? DefDatabase<ThingDef>.GetNamed(stuffDefName) : null;
             return MakeThingFromDef(def, stuff, quality);
         }
 
@@ -41,12 +44,13 @@ namespace RangedDPS.Utilities
         /// </summary>
         /// <returns>The thing.</returns>
         /// <param name="defName">Def name.</param>
-        /// <param name="stuffDefName">Stuff def name.</param>
-        /// <param name="quality">Quality.</param>
-        public static Thing MakeThingByName(string defName, string stuffDefName = null, QualityCategory quality = QualityCategory.Normal)
+        /// <param name="stuffDefName">(Optional) Stuff def name. Defaults to the default stuff.</param>
+        /// <param name="quality">(Optional) Quality.</param>
+        [PublicAPI]
+        public static Thing MakeThingByName(string defName, string? stuffDefName = null, QualityCategory quality = QualityCategory.Normal)
         {
-            ThingDef def = DefDatabase<ThingDef>.GetNamed(defName);
-            ThingDef stuff = (stuffDefName != null) ? DefDatabase<ThingDef>.GetNamed(stuffDefName) : GenStuff.RandomStuffFor(def);
+            var def = DefDatabase<ThingDef>.GetNamed(defName);
+            var stuff = stuffDefName != null ? DefDatabase<ThingDef>.GetNamed(stuffDefName) : null;
 
             return MakeThingFromDef(def, stuff, quality);
         }
