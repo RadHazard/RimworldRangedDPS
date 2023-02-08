@@ -4,7 +4,7 @@ using RangedDPS.StatUtilities;
 using RimWorld;
 using Verse;
 
-namespace RangedDPS
+namespace RangedDPS.StatWorkers
 {
 
     public class StatWorker_TurretWeaponDPS : StatWorker_TurretDPSBase

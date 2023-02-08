@@ -1,3 +1,8 @@
+# V1.6.0 - Rimworld 1.4 support
+**Features**
+- Added a Korean translation, supplied by inbae on steam.
+
+
 # V1.5.0 - Korean Translation
 **Features**
 - Added a Korean translation, supplied by inbae on steam.
